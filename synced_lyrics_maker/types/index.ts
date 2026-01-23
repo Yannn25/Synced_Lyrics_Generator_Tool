@@ -19,3 +19,14 @@ export type SyncedLyricsJSON = SyncedLyricItem[];
 
 // Type for the LRC format who will be exported(simple string with a specific format)
 export type LRCFormat = string;
+
+// Props for the LyricsList component
+export type LyricsListProps = {
+    lyrics: LyricLine[]; // Array of lyric lines to display
+    selectedLineId: string | null; // ID of the lyric line currently selected
+    onSelectLine: (lineId: string) => void; // Function to call when a lyric line is selected
+    onClearTimestamp: (lineId: string) => void; // Function to call when a lyric line timestamp is cleared
+    //onUpdateLyric: (lineId: string, newText: string) => void; // Function to call when a lyric line is updated
+    //onSyncLyric: (lineId: string) => void; // Function to call when a lyric line is synced
+    //onRemoveLyric: (lineId: string) => void; // Function to call when a lyric line is removed
+};
