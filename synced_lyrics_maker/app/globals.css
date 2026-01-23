@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #d3f8f8;
-  --foreground: #05313e;
+  --background: #0f172a;
+  --foreground: #f8fafc;
 
-  --color-primary-darkest: #05313e;
-  --color-primary-dark: #085262;
-  --color-primary: #177181;
-  --color-primary-light: #1da3bb;
-  --color-primary-lightest: #d3f8f8;
+  --color-primary-darkest: #0ea5e9;
+  --color-primary-dark: #38bdf8;
+  --color-primary: #7dd3fc;
+  --color-primary-light: #bae6fd;
+  --color-primary-lightest: #e0f2fe;
 }
 
 @theme inline {
@@ -24,8 +24,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #05313e;
-    --foreground: #d3f8f8;
+    --background: #0f172a;
+    --foreground: #f8fafc;
   }
 }
 
@@ -40,4 +40,62 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: 'Geist', Arial, Helvetica, sans-serif;
+}
+
+/* Tailwind component helpers */
+@layer components {
+  .app-shell {
+    @apply min-h-screen bg-background text-foreground;
+  }
+
+  .card {
+    @apply rounded-2xl border border-white/10 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl shadow-2xl shadow-primary-darkest/20;
+  }
+
+  .card-header {
+    @apply flex items-start justify-between gap-4 border-b border-white/10 px-6 py-5;
+  }
+
+  .card-title {
+    @apply text-lg justify-center font-bold text-foreground;
+  }
+
+  .card-subtitle {
+    @apply text-sm text-slate-400;
+  }
+
+  .card-body {
+    @apply px-6 py-5;
+  }
+
+  .btn, .btn-primary, .btn-ghost, .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold
+    transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-darkest/50
+    disabled:cursor-not-allowed disabled:opacity-50 transform hover:scale-105 active:scale-95;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary-darkest to-primary-dark text-white hover:from-primary-dark hover:to-primary shadow-lg shadow-primary-darkest/30;
+  }
+
+  .btn-ghost {
+    @apply bg-slate-700/50 text-slate-200 hover:bg-slate-600/50 border border-white/10;
+  }
+
+  .btn-danger {
+    @apply bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-lg shadow-red-500/30;
+  }
+
+  .input, .textarea {
+    @apply w-full rounded-xl border border-white/20 bg-slate-800/50 px-4 py-3 text-sm text-foreground
+    placeholder:text-slate-500 focus:border-primary-darkest/60 focus:outline-none focus:ring-2 focus:ring-primary-darkest/30 backdrop-blur transition-all;
+  }
+
+  .textarea {
+    @apply min-h-[200px] resize-none;
+  }
+
+  .kbd {
+    @apply rounded-lg border border-white/20 bg-slate-700/50 px-3 py-1 text-xs font-bold text-foreground shadow-md;
+  }
 }

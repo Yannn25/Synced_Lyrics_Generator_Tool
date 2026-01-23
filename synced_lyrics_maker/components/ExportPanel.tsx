@@ -1,22 +1,24 @@
-import React from 'react';
+import React from "react";
 
 const ExportPanel: React.FC = () => {
-    return (
-        <div className="bg-primary-lightest text-primary-darkest p-6 rounded-lg shadow-md max-w-md mx-auto">
-            <div className="text-center text-xl">
-                Export Your Lyrics
-            </div>
-
-            <div className="mt-4 flex gap-3 justify-center">
-                <button className="px-4 py-2 rounded bg-primary-lightest text-primary-darkest hover:bg-primary-dark">
-                    Export as JSON
-                </button>
-                <button className="px-4 py-2 rounded bg-primary-lightest text-primary-darkest hover:bg-primary-dark">
-                    Export as LRC
-                </button>
-            </div>
+  return (
+    <div className="card">
+      <div className="card-header">
+        <div>
+          <h2 className="card-title">Export</h2>
+          <p className="card-subtitle">Télécharge tes lyrics synchronisées.</p>
         </div>
-    );
+      </div>
+
+      <div className="card-body flex flex-col gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <button className="btn-primary">Export JSON</button>
+          <button className="btn-ghost">Export LRC</button>
+        </div>
+
+      </div>
+    </div>
+  );
 };
 
 export default ExportPanel;
