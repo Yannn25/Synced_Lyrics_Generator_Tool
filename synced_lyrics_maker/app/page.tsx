@@ -2,6 +2,7 @@ import React from "react";
 import AudioPlayer from "@/components/AudioPlayer";
 import LyricsInput from "@/components/LyricsInput";
 import LyricsList    from "@/components/LyricsList";
+import ExportPanel from "@/components/ExportPanel";
 
 export default function Home() {
   return (
@@ -11,12 +12,8 @@ export default function Home() {
         </header>
         <AudioPlayer />
         <LyricsInput />
-          <LyricsList
-              lyrics={[]}
-              selectedLineId={null}
-                onSelectLine={() => {}}
-                onClearTimestamp={() => {}}
-          />
+          {/* <LyricsList /> */}
+        <ExportPanel />
         <footer className="py-3 px-6 text-center text-xs text-[var(--color-primary-dark)] bg-[var(--color-primary-lightest)] mt-12">
           © 2026 - Synced Lyrics Maker | <a href="https://github.com/Yannn25/Synced_Lyrics_Generator_Tool" target="_blank" rel="noopener noreferrer" className="underline"> code source</a>
         </footer>
