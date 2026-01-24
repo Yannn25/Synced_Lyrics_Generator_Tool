@@ -30,3 +30,20 @@ export type LyricsListProps = {
     //onSyncLyric: (lineId: string) => void; // Function to call when a lyric line is synced
     //onRemoveLyric: (lineId: string) => void; // Function to call when a lyric line is removed
 };
+
+export interface AudioState {
+  isPlaying: boolean;
+  currentTime: number;
+  duration: number;
+  isLoaded: boolean;
+}
+
+// Props for the AudioPlayer component
+export type AudioPlayerProps = {
+    audioFile: File | null; // Audio file to play
+    onAudioLoad: (file: File) => void; // Function to call when the audio file is loaded
+    onAudioPlay: () => void; // Function to call when the audio is played
+    onAudioPause: () => void; // Function to call when the audio is paused
+    onAudioSeek: (time: number) => void; // Function to call when the audio is seeked
+    onAudioTimeUpdate: (time: number) => void; // Function to call when the audio time is updated
+};
