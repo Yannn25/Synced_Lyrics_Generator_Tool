@@ -2,6 +2,10 @@ import { useState, useCallback } from 'react';
 import { parseLyrics as parseLyricsUtil } from "@/utils/parseLyrics";
 import { LyricLine } from "@/types";
 
+/**
+ * Custom hook for managing lyrics state
+ *
+ */
 
 export function useLyrics() {
     const [lyrics, setLyrics] = useState<LyricLine[]>([]);
