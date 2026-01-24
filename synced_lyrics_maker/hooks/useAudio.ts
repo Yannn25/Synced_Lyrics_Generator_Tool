@@ -54,12 +54,12 @@ export function useAudio() {
     }, [play, pause]);
   
     // Get exact timestamp for syncing (critical for syncing!)
-    const getCurrentTimestamp = useCallback(() => {
+    const getCurrentTimestamp = useCallback( () => {
       return audioRef.current?.currentTime ?? 0;
     }, []);
   
     // Seek (progress bar)
-    const seek = useCallback((time: number) => {
+    const seek = useCallback( (time: number) => {
       if (audioRef.current) {
         audioRef.current.currentTime = time;
       }
