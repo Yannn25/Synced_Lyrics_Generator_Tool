@@ -46,9 +46,9 @@ export function useAudio() {
     const togglePlay = useCallback(() => {
       if (audioRef.current) {
         if (audioRef.current.paused) {
-          this.play();
+          play();
         } else {
-          this.pause();
+          pause();
         }
       }
     }, [play, pause]);

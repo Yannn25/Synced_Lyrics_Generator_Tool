@@ -36,7 +36,7 @@ export function useExport() {
     // Generate a default filename for the exported file
     const generateFilename = useCallback((format: 'json' | 'lrc', lyrics?: LyricLine[]): string => {
         const date = new Date().toISOString().slice(0, 10);
-        const baseName = lyrics ? generateSmartFilename(lyrics) : 'synced-lyrics';
+        const baseName = lyrics ? generateSmartFileName(lyrics) : 'synced-lyrics';
         return `${baseName}_${date}.${format}`;
     }, []);
 
@@ -66,7 +66,9 @@ export function useExport() {
         exportLRC,
         exportJSON,
         downloadFile,
-        generateFilename
+        generateFilename,
+        quickExport,
+        getExportStats
     };
 
 }
