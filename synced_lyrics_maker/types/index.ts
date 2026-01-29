@@ -23,9 +23,9 @@ export type LRCFormat = string;
 // Props for the LyricsList component
 export type LyricsListProps = {
     lyrics: LyricLine[]; // Array of lyric lines to display
-    selectedLineId: string | null; // ID of the lyric line currently selected
-    onSelectLine: (lineId: string) => void; // Function to call when a lyric line is selected
-    onClearTimestamp: (lineId: string) => void; // Function to call when a lyric line timestamp is cleared
+    selectedLineId: number | null; // ID of the lyric line currently selected
+    onSelectLine: (lineId: number) => void; // Function to call when a lyric line is selected
+    onClearTimestamp: (lineId: number) => void; // Function to call when a lyric line timestamp is cleared
     //onUpdateLyric: (lineId: string, newText: string) => void; // Function to call when a lyric line is updated
     //onSyncLyric: (lineId: string) => void; // Function to call when a lyric line is synced
     //onRemoveLyric: (lineId: string) => void; // Function to call when a lyric line is removed

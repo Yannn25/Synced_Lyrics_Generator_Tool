@@ -1,11 +1,39 @@
-import React from "react";
+'use client'
+
+import React, {useCallback} from "react";
 import AudioPlayer from "@/components/AudioPlayer";
 import LyricsInput from "@/components/LyricsInput";
 import LyricsList from "@/components/LyricsList";
 import ExportPanel from "@/components/ExportPanel";
 import ShortcutsHint from "@/components/ShortcutsHints";
+import { useLyrics } from "@/hooks/useLyrics";
+import { useAudio } from "@/hooks/useAudio";
+import { useExport } from "@/hooks/useExport";
 
 export default function Home() {
+  const {
+      lyrics,
+      selectedLineId,
+      loadLyrics,
+      selectLine,
+      clearTimestamp,
+      syncAndAdvance,
+  } = useLyrics();
+
+  const audio = useAudio();
+
+  const exporter = useExport();
+
+  // Main function to sync a line with audioPlayer et lyricInput component
+  const handleSyncLine = useCallback(() => {
+    if(!selectedLineId) {
+      console.warn('No line selected');
+      return;
+    }
+    const timestamp = audio.getCurrentTimestamp();
+    syncAndAdvance(selectedLineId, timestamp);
+  }, [selectedLineId, audio, syncAndAdvance]);
+
   return (
     <div className="app-shell">
       <header className="sticky top-0 z-10 border-b border-white/10 bg-slate-900/80 backdrop-blur-xl">
@@ -21,8 +49,12 @@ export default function Home() {
       <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-8 md:py-12">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           <section className="lg:col-span-5 flex flex-col gap-8">
-            <AudioPlayer />
-            <LyricsInput />
+            <AudioPlayer
+                audio={audio}
+                onSyncLine={handleSyncLine}
+                canSync={selectedLineId != null && audio.isLoaded}
+            />
+            <LyricsInput onLoadLyrics={loadLyrics} />
             <ShortcutsHint />
           </section>
 
@@ -32,21 +64,24 @@ export default function Home() {
                 <div>
                   <h2 className="card-title">Lyrics</h2>
                   <p className="card-subtitle">
-                    Clique une ligne pour la sélectionner, puis synchronise.
+                    Clique sur une ligne pour la sélectionner, puis synchronise la.
                   </p>
                 </div>
               </div>
               <div className="card-body">
                 <LyricsList
-                  lyrics={[]}
-                  selectedLineId={null}
-                  onSelectLine={() => {}}
-                  onClearTimestamp={() => {}}
+                    lyrics={lyrics}
+                    selectedLineId={selectedLineId}
+                    onSelectLine={selectLine}
+                    onClearTimestamp={clearTimestamp}
                 />
               </div>
             </div>
 
-            <ExportPanel />
+            <ExportPanel
+                lyrics={lyrics}
+                exporter={exporter}
+            />
           </section>
         </div>
       </main>

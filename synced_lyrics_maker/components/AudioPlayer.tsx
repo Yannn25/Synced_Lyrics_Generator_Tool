@@ -4,7 +4,13 @@ import React, {useRef} from "react";
 import { useAudio } from "@/hooks/useAudio";
 import { formatTime } from "@/utils/formatTime";
 
-const AudioPlayer: React.FC = () => {
+interface AudioPlayerProps {
+  audio: ReturnType<typeof useAudio>;
+  onSyncLine: () => void;
+  canSync: boolean;
+}
+
+const AudioPlayer: React.FC<AudioPlayerProps> = ({ audio, onSyncLine, canSync}) => {
   const {
     audioRef,
     isPlaying,
@@ -15,7 +21,7 @@ const AudioPlayer: React.FC = () => {
     loadAudio,
     togglePlay,
     seek,
-  } = useAudio();
+  } = audio;
 
   const fileInputRef = useRef< HTMLInputElement | null >(null);
 
@@ -87,16 +93,16 @@ const AudioPlayer: React.FC = () => {
             <>
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <button
-                    onClick={togglePlay}
+                    onClick={ togglePlay }
                     className="btn-primary"
                 >
                   {isPlaying ? '⏸ Pause' : '▶ Play'}
                 </button>
 
                 <div className="ml-auto text-sm font-mono text-primary-dark">
-                  {formatTime(currentTime)}
+                  { formatTime(currentTime) }
                   <span className="text-slate-500"> / </span>
-                  {formatTime(duration)}
+                  { formatTime(duration) }
                 </div>
               </div>
 
@@ -105,19 +111,19 @@ const AudioPlayer: React.FC = () => {
                 <input
                     type="range"
                     min="0"
-                    max={duration || 100}
+                    max={ duration || 100 }
                     step="0.1"
-                    value={currentTime}
+                    value={ currentTime }
                     onChange={handleSeek}
                     className="h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-700/50 accent-primary-darkest [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-primary-darkest [&::-webkit-slider-thumb]:to-primary-dark [&::-webkit-slider-thumb]:shadow-lg"
                 />
                 <div className="flex items-center justify-between text-xs text-slate-400">
-                  <span>{progressPercentage.toFixed(0)}%</span>
-                  <span>100%</span>
+                  <span>{ formatTime(currentTime) }</span>
+                  <span>{ formatTime(duration) }</span>
                 </div>
               </div>
 
-              {/*<div className="flex items-center justify-between gap-4 rounded-xl border border-primary-darkest/30 bg-gradient-to-r from-slate-800/50 to-slate-700/50 px-5 py-4 shadow-lg">
+              <div className="flex items-center justify-between gap-4 rounded-xl border border-primary-darkest/30 bg-gradient-to-r from-slate-800/50 to-slate-700/50 px-5 py-4 shadow-lg">
                 <div>
                   <div className="text-sm font-bold text-foreground flex items-center gap-2">
                     Sync Current Line
@@ -127,8 +133,14 @@ const AudioPlayer: React.FC = () => {
                   </div>
                 </div>
 
-                <button className="btn-primary">Sync</button>
-              </div>*/}
+                <button
+                    className="btn-primary"
+                    onClick={ onSyncLine }
+                    disabled={ !canSync }
+                >
+                  Sync
+                </button>
+              </div>
             </>
         )}
       </div>
