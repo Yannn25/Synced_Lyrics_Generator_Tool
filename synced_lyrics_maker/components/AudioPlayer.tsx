@@ -92,12 +92,26 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audio, onSyncLine, canSync}) 
         { isLoaded && (
             <>
               <div className="flex flex-wrap items-center justify-between gap-4">
-                <button
-                    onClick={ togglePlay }
-                    className="btn-primary"
-                >
-                  {isPlaying ? '⏸ Pause' : '▶ Play'}
-                </button>
+                <div className="justify-center">
+                  <button
+                      onClick={() => seek(currentTime - 5)}
+                      className="btn-ghost"
+                  >
+                    -5
+                  </button>
+                  <button
+                      onClick={ togglePlay }
+                      className="btn-primary"
+                  >
+                    {isPlaying ? '⏸ Pause' : '▶ Play'}
+                  </button>
+                  <button
+                    onClick={() => seek(currentTime + 5)}
+                    className="btn-ghost"
+                  >
+                    +5
+                  </button>
+                </div>
 
                 <div className="ml-auto text-sm font-mono text-primary-dark">
                   { formatTime(currentTime) }

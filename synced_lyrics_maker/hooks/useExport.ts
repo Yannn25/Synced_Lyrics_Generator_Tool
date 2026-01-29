@@ -6,7 +6,6 @@ import { LyricLine } from "@/types";
 
 /**
  * Custom hook for exporting lyrics
- *
  */
 
 export function useExport() {
