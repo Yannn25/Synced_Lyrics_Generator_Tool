@@ -1,6 +1,6 @@
 'use client'
 
-import React, {useCallback} from "react";
+import React, {useCallback, useEffect, useRef} from "react";
 import AudioPlayer from "@/components/AudioPlayer";
 import LyricsInput from "@/components/LyricsInput";
 import LyricsList from "@/components/LyricsList";
@@ -24,15 +24,51 @@ export default function Home() {
 
   const exporter = useExport();
 
+  // Ref to store the previous timestamp for syncing
+  const prevTimeStampRef = useRef<number | null>(null);
+
   // Main function to sync a line with audioPlayer et lyricInput component
   const handleSyncLine = useCallback(() => {
+    if(!audio.isLoaded) {
+      return;
+    }
     if(!selectedLineId) {
       console.warn('No line selected');
       return;
     }
-    const timestamp = audio.getCurrentTimestamp();
-    syncAndAdvance(selectedLineId, timestamp);
+    const currentTimestamp = audio.getCurrentTimestamp();
+
+    // The new timestamp should be greater than the previous one
+    const selectedLine = lyrics.find(line => line.id === selectedLineId);
+    const prevLineIndex = lyrics.findIndex(line => line.id === selectedLineId) - 1;
+    const prevLine = prevLineIndex >= 0 ? lyrics[prevLineIndex] : null;
+    if(prevLine?.timestamp !== null && currentTimestamp <= prevLine?.timestamp) {
+      console.warn('Le timestamp doit être supérieur à la ligne précédente');
+      return;
+    }
+
+    syncAndAdvance(selectedLineId, currentTimestamp);
+    prevTimeStampRef.current = currentTimestamp;
+
   }, [selectedLineId, audio, syncAndAdvance]);
+
+  // EventListener when the touch ENTER is press
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+      if(target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      if(event.key === 'Enter') {
+        event.preventDefault();
+        handleSyncLine();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleSyncLine]);
 
   return (
     <div className="app-shell">

@@ -42,9 +42,6 @@ const LyricsInput: React.FC<LyricsInputProps> = ({ onLoadLyrics }) => {
               placeholder="Colle tes lyrics ici, une ligne par parole..."
               value={lyricsText}
               onChange={e => setLyricsText(e.target.value)}
-/*
-              onKeyDown={e => e.key === 'Enter' && handleLoadLyrics()}
-*/
             />
 
             <div className="flex items-center justify-between gap-4">
