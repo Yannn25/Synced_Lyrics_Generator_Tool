@@ -18,6 +18,7 @@ export default function Home() {
       selectLine,
       clearTimestamp,
       syncAndAdvance,
+      clearList
   } = useLyrics();
 
   const audio = useAudio();
@@ -99,6 +100,7 @@ export default function Home() {
             <div className="card">
               <div className="card-header">
 
+
                 {/* Help button */}
                 <button
                     onClick={() => setShowHelp(!showHelp)}
@@ -128,11 +130,25 @@ export default function Home() {
                       </div>
                     </>
                 )}
-                <div>
-                  <h2 className="card-title">Lyrics</h2>
-                  <p className="card-subtitle">
-                    Clique sur une ligne pour la sélectionner, puis synchronise la.
-                  </p>
+
+                {/* Clear All button */}
+                <div className="flex items-center gap-4">
+                  <div>
+                    <h2 className="card-title">Lyrics</h2>
+                    <p className="card-subtitle">
+                      Clique sur une ligne pour la sélectionner, puis synchronise la.
+                    </p>
+                  </div>
+
+                  {lyrics.length > 0 && (
+                      <button
+                          onClick={clearList}
+                          className="btn-danger px-3 py-1.5 text-xs ml-auto"
+                          title="Effacer toutes les lyrics"
+                      >
+                        Tout effacer
+                      </button>
+                  )}
                 </div>
               </div>
               <div className="card-body">

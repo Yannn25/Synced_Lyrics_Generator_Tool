@@ -60,6 +60,11 @@ export function useLyrics() {
         });
     }, []);
 
+    // Clear all lines contains in the lyrics list
+    const clearList = useCallback(() => {
+        setLyrics([]);
+    }, [lyrics]);
+
     return {
         lyrics,
         selectedLineId,
@@ -69,6 +74,7 @@ export function useLyrics() {
         updateTimestamp,
         clearTimestamp,
         getNextUnsyncedLine,
-        syncAndAdvance
+        syncAndAdvance,
+        clearList
     };
   }
