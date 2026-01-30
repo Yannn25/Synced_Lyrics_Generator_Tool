@@ -1,6 +1,6 @@
 'use client'
 
-import React, {useCallback, useEffect, useRef} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import AudioPlayer from "@/components/AudioPlayer";
 import LyricsInput from "@/components/LyricsInput";
 import LyricsList from "@/components/LyricsList";
@@ -70,6 +70,8 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleSyncLine]);
 
+  const [showHelp, setShowHelp] = useState(false);
+
   return (
     <div className="app-shell">
       <header className="sticky top-0 z-10 border-b border-white/10 bg-slate-900/80 backdrop-blur-xl">
@@ -91,12 +93,41 @@ export default function Home() {
                 canSync={selectedLineId != null && audio.isLoaded}
             />
             <LyricsInput onLoadLyrics={loadLyrics} />
-            <ShortcutsHint />
           </section>
 
           <section className="lg:col-span-7 flex flex-col gap-8">
             <div className="card">
               <div className="card-header">
+
+                {/* Help button */}
+                <button
+                    onClick={() => setShowHelp(!showHelp)}
+                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-slate-700/50 border border-white/10 hover:bg-slate-600/50 hover:border-primary-darkest/50 transition-all flex items-center justify-center text-slate-400 hover:text-primary-dark z-20"
+                    title="Aide"
+                >
+                  <span className="text-sm font-bold">?</span>
+                </button>
+
+                {/* Help modal */}
+                { showHelp && (
+                    <>
+                      <div
+                          className="fixed inset-0 z-100"
+                          onClick={() => setShowHelp(false)}
+                      />
+                      <div className="absolute top-8 right-0 z-40 w-80 shadow-2xl rounded-xl overflow-hidden bg-slate-800">
+                        <div className="relative">
+                          <button
+                              onClick={() => setShowHelp(false)}
+                              className="absolute top-3 right-3 w-6 h-6 rounded-full bg-slate-700 hover:bg-slate-600 flex items-center justify-center text-slate-400 hover:text-white transition-colors z-10"
+                          >
+                            x
+                          </button>
+                          <ShortcutsHint />
+                        </div>
+                      </div>
+                    </>
+                )}
                 <div>
                   <h2 className="card-title">Lyrics</h2>
                   <p className="card-subtitle">

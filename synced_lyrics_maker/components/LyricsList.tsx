@@ -1,6 +1,6 @@
 'use client'
 
-import React from "react";
+import React, {useState} from "react";
 import { LyricsListProps } from "@/types";
 
 const LyricsList: React.FC<LyricsListProps> = ({ lyrics, selectedLineId, onSelectLine, onClearTimestamp }) => {
