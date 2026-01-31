@@ -165,7 +165,7 @@ function TestUseLyrics() {
         loadLyrics,
         selectLine,
         syncLine,
-        updateTimestamp,
+        onUpdateTimestamp,
         clearTimestamp,
         syncAndAdvance
     } = useLyrics();

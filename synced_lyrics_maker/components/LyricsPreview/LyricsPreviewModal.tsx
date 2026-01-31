@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import { LyricLine } from "@/types";
+import { formatTime } from "@/utils/formatTime";
 import useLyricsSync from "@/hooks/useLyricsSync";
 import CurrentLyricDisplay from "@/components/LyricsPreview/CurrentLyricsDisplay";
 
@@ -66,13 +67,6 @@ const LyricsPreviewModal: React.FC<LyricsPreviewModalProps> = ({
         };
     }, [isOpen, onClose, isPlaying, onPlay, onPause]);
 
-    // Formater le temps en mm:ss
-    const formatTime = (time: number): string => {
-        const minutes = Math.floor(time / 60);
-        const seconds = Math.floor(time % 60).toString().padStart(2, "0");
-        return `${minutes}:${seconds}`;
-    };
-
     if (!isOpen) return null;
 
     return (
@@ -106,7 +100,7 @@ const LyricsPreviewModal: React.FC<LyricsPreviewModalProps> = ({
             />
 
             {/* Contrôles audio en bas */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+            <div className="absolute justify-center bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
                 <div className="max-w-2xl mx-auto space-y-4">
                     {/* Timeline */}
                     <div className="flex items-center gap-4">

@@ -39,7 +39,7 @@ const CurrentLyricDisplay: React.FC<CurrentLyricDisplayProps> = ({
                     </>
                 ) : (
                     <p className="text-3xl md:text-5xl lg:text-6xl font-bold text-slate-600 italic">
-                        ♪ En attente...
+                        En attente...
                     </p>
                 )}
             </div>

@@ -4,7 +4,6 @@ import { LyricLine } from "@/types";
 
 /**
  * Custom hook for managing lyrics state
- *
  */
 
 export function useLyrics() {
@@ -29,11 +28,6 @@ export function useLyrics() {
             (line.id === lineId ? {...line, timestamp, isSynced: true} : line)));
     }, []);
 
-    // Edit a timestamp for a line
-    const updateTimestamp = useCallback( (lineId: number, timestamp: number | null) => {
-        setLyrics(prev => prev.map(line =>
-            (line.id === lineId ? {...line, timestamp, isSynced : timestamp !== null } : line)));
-    }, []);
 
     // Clear a timestamp for a line
     const clearTimestamp = useCallback( (lineId: number) => {
@@ -66,10 +60,24 @@ export function useLyrics() {
         setSelectedLineId(null);
     }, []);
 
+    // Edit a timestamp for a line
     const onUpdateTimestamp = useCallback((lineId: number, timestamp: number | null) => {
         setLyrics(prev => prev.map(line =>
             (line.id === lineId ? {...line, timestamp, isSynced : timestamp !== null } : line)));
-    })
+    }, []);
+
+    // Update text of a lyric line
+    const updateLineText = useCallback((lineId: number, newText: string) => {
+        setLyrics( prev => prev.map(line =>
+            line.id === lineId ? {...line, text: newText} : line
+        ));
+    }, []);
+
+    // Delete a lyric line
+    const deleteLine = useCallback((lineId: number) => {
+        setLyrics(prev => prev.filter(line => line.id !== lineId));
+        setSelectedLineId(prev => prev === lineId ? null : prev);
+    }, []);
 
     return {
         lyrics,
@@ -77,11 +85,12 @@ export function useLyrics() {
         loadLyrics,
         selectLine,
         syncLine,
-        updateTimestamp,
         clearTimestamp,
         onUpdateTimestamp,
         getNextUnsyncedLine,
         syncAndAdvance,
-        clearList
+        clearList,
+        updateLineText,
+        deleteLine,
     };
   }

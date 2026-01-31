@@ -25,10 +25,11 @@ export type LyricsListProps = {
     lyrics: LyricLine[]; // Array of lyric lines to display
     selectedLineId: number | null; // ID of the lyric line currently selected
     onSelectLine: (lineId: number) => void; // Function to call when a lyric line is selected
-    onClearTimestamp: (lineId: number) => void; // Function to call when a lyric line timestamp is cleared
-    onUpdateTimestamp: (lineId: number, timestamp: number | null) => void; // Function to call when a timestamp is manually edited
-    //onUpdateLyric: (lineId: string, newText: string) => void; // Function to call when a lyric line is updated
-};
+    onClearTimestamp: (lineId: number) => void; // Function to call when a lyric line's timestamp is cleared
+    onUpdateTimestamp: (lineId: number, timestamp: number | null) => void; // Function to call when a lyric line's timestamp is updated
+    onUpdateLineText: (lineId: number, newText: string) => void; // Function to call when a lyric line text is updated
+    onDeleteLine: (lineId: number) => void; // Function to call when a lyric line is deleted
+}
 
 export interface AudioState {
   isPlaying: boolean;
@@ -45,7 +46,7 @@ export type AudioPlayerProps = {
     onAudioPause: () => void; // Function to call when the audio is paused
     onAudioSeek: (time: number) => void; // Function to call when the audio is seeked
     onAudioTimeUpdate: (time: number) => void; // Function to call when the audio time is updated
-};
+}
 
 export interface CurrentLyricDisplayProps {
     activeLine: LyricLine | null;

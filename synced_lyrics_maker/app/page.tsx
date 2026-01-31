@@ -20,7 +20,9 @@ export default function Home() {
       clearTimestamp,
       syncAndAdvance,
       clearList,
-      updateTimestamp,
+      onUpdateTimestamp,
+      updateLineText,
+      deleteLine
   } = useLyrics();
 
   const audio = useAudio();
@@ -140,7 +142,9 @@ export default function Home() {
                     selectedLineId={selectedLineId}
                     onSelectLine={selectLine}
                     onClearTimestamp={clearTimestamp}
-                    onUpdateTimestamp={updateTimestamp}
+                    onUpdateTimestamp={onUpdateTimestamp}
+                    onUpdateLineText={updateLineText}
+                    onDeleteLine={deleteLine}
                 />
               </div>
             </div>
