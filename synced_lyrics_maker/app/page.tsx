@@ -6,6 +6,7 @@ import LyricsInput from "@/components/LyricsInput";
 import LyricsList from "@/components/LyricsList";
 import ExportPanel from "@/components/ExportPanel";
 import HelpModal from "@/components/HelpModal";
+import LyricsPreviewModal from "@/components/LyricsPreview/LyricsPreviewModal";
 import { useLyrics } from "@/hooks/useLyrics";
 import { useAudio } from "@/hooks/useAudio";
 import { useExport } from "@/hooks/useExport";
@@ -28,6 +29,8 @@ export default function Home() {
 
   // Ref to store the previous timestamp for syncing
   const prevTimeStampRef = useRef<number | null>(null);
+
+  const [showPreview, setShowPreview] = useState(false);
 
   // Main function to sync a line with audioPlayer et lyricInput component
   const handleSyncLine = useCallback(() => {
@@ -111,13 +114,23 @@ export default function Home() {
                   </div>
 
                   {lyrics.length > 0 && (
-                      <button
-                          onClick={clearList}
-                          className="btn-danger px-3 py-1.5 text-xs ml-auto"
-                          title="Effacer toutes les lyrics"
-                      >
-                        Tout effacer
-                      </button>
+                      <>
+                        <button
+                            onClick={() => setShowPreview(true)}
+                            className="btn-secondary px-3 py-1.5 text-xs ml-auto"
+                            title="Prévisualiser les lyrics"
+                            disabled={!audio.isLoaded}
+                        >
+                          Preview
+                        </button>
+                        <button
+                            onClick={clearList}
+                            className="btn-danger px-3 py-1.5 text-xs ml-auto"
+                            title="Effacer toutes les lyrics"
+                        >
+                          Tout effacer
+                        </button>
+                      </>
                   )}
                 </div>
               </div>
@@ -153,6 +166,17 @@ export default function Home() {
           </a>
         </div>
       </footer>
+      <LyricsPreviewModal
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          lyrics={lyrics}
+          currentTime={audio.currentTime}
+          duration={audio.duration}
+          isPlaying={audio.isPlaying}
+          onPlay={audio.play}
+          onPause={audio.pause}
+          onSeek={audio.seek}
+      />
     </div>
   );
 }

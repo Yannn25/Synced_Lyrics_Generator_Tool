@@ -46,3 +46,10 @@ export type AudioPlayerProps = {
     onAudioSeek: (time: number) => void; // Function to call when the audio is seeked
     onAudioTimeUpdate: (time: number) => void; // Function to call when the audio time is updated
 };
+
+export interface CurrentLyricDisplayProps {
+    activeLine: LyricLine | null;
+    previousLine: LyricLine | null;
+    nextLine: LyricLine | null;
+    progress: number;
+}
