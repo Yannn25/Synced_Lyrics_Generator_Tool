@@ -63,7 +63,8 @@ export function useLyrics() {
     // Clear all lines contains in the lyrics list
     const clearList = useCallback(() => {
         setLyrics([]);
-    }, [lyrics]);
+        setSelectedLineId(null);
+    }, []);
 
     return {
         lyrics,
