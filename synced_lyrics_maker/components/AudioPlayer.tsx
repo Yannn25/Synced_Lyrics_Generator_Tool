@@ -57,9 +57,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audio, onSyncLine, canSync}) 
       <div className="card-body flex flex-col gap-5">
 
         {/* Upload audio file  */}
-        <div className="flex flex-col gap-3">
-          <label htmlFor="audio-file" className="text-sm font-bold text-foreground">
-             Upload Audio File
+        <div className="flex flex-col gap-2">
+          <label htmlFor="audio-file" className="text-sm font-semibold text-foreground">
+             Fichier audio
           </label>
           <input
               ref={fileInputRef}
@@ -67,88 +67,95 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audio, onSyncLine, canSync}) 
               type="file"
               accept="audio/*"
               onChange={handleFileChange}
-              className="input file:mr-4 file:rounded-xl file:border-0 file:bg-gradient-to-r file:from-primary-darkest file:to-primary-dark file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:from-primary-dark hover:file:to-primary file:shadow-lg file:transition-all file:cursor-pointer"
+              className="input file:mr-4 file:rounded-lg file:border-0 file:bg-gradient-to-r file:from-primary-darkest file:to-primary-dark file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:from-primary-dark hover:file:to-primary file:shadow-md file:transition-all file:cursor-pointer"
           />
-          <p className="text-xs text-slate-400">
-            Formats : mp3, wav, m4a, flac, ogg…
-          </p>
         </div>
 
         {/* Error message */}
         {error && (
-            <div className="rounded-lg bg-red-500/20 border border-red-500/50 px-4 py-3 text-sm text-red-400">
-              ⚠️ {error}
+            <div className="rounded-lg bg-red-500/15 border border-red-500/40 px-4 py-3 text-sm text-red-400">
+              {error}
             </div>
         )}
 
         {/* Message if audio file is not loaded */}
         {!isLoaded && !error && (
-            <div className="rounded-lg bg-slate-700/30 px-4 py-6 text-center text-sm text-slate-400">
-              Veuillez charger un fichier audio pour commencer
+            <div className="rounded-xl bg-slate-700/20 border border-white/5 px-4 py-8 text-center">
+              <p className="text-sm text-slate-400">Charger un fichier audio pour commencer</p>
             </div>
         )}
 
         {/* Audio controls - Shown if audio is loaded */}
         { isLoaded && (
             <>
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="justify-center">
-                  <button
-                      onClick={() => seek(currentTime - 5)}
-                      className="btn-ghost"
-                  >
-                    -5
-                  </button>
-                  <button
-                      onClick={ togglePlay }
-                      className="btn-primary"
-                  >
-                    {isPlaying ? '⏸ Pause' : '▶ Play'}
-                  </button>
-                  <button
-                    onClick={() => seek(currentTime + 5)}
-                    className="btn-ghost"
-                  >
-                    +5
-                  </button>
+              {/* Progress bar avec timestamp */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between text-sm font-mono">
+                  <span className="text-primary-dark font-bold">{formatTime(currentTime)}</span>
+                  <span className="text-slate-500">{formatTime(duration)}</span>
                 </div>
-
-                <div className="ml-auto text-sm font-mono text-primary-dark">
-                  { formatTime(currentTime) }
-                  <span className="text-slate-500"> / </span>
-                  { formatTime(duration) }
-                </div>
-              </div>
-
-              {/* Progress bar */}
-              <div className="flex flex-col gap-3">
                 <input
                     type="range"
                     min="0"
                     max={ duration || 100 }
-                    step="0.1"
+                    step="0.01"
                     value={ currentTime }
                     onChange={handleSeek}
-                    className="h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-700/50 accent-primary-darkest [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-primary-darkest [&::-webkit-slider-thumb]:to-primary-dark [&::-webkit-slider-thumb]:shadow-lg"
+                    className="progress-bar"
+                    style={{
+                      background: `linear-gradient(to right, #0ea5e9 0%, #38bdf8 ${progressPercentage}%, rgba(51, 65, 85, 0.6) ${progressPercentage}%)`
+                    }}
                 />
-                <div className="flex items-center justify-between text-xs text-slate-400">
-                  <span>{ formatTime(currentTime) }</span>
-                  <span>{ formatTime(duration) }</span>
-                </div>
               </div>
 
-              <div className="flex items-center justify-between gap-4 rounded-xl border border-primary-darkest/30 bg-gradient-to-r from-slate-800/50 to-slate-700/50 px-5 py-4 shadow-lg">
-                <div>
-                  <div className="text-sm font-bold text-foreground flex items-center gap-2">
-                    Sync Current Line
-                  </div>
-                  <div className="text-xs text-slate-400 mt-1">
-                    Sélectionne une ligne, puis synchronise
-                  </div>
-                </div>
-
+              {/* Contrôles de lecture */}
+              <div className="flex items-center justify-center gap-3">
                 <button
-                    className="btn-primary"
+                    onClick={() => seek(Math.max(0, currentTime - 5))}
+                    className="btn-ghost px-3 py-2 text-sm"
+                    title="Reculer de 5s"
+                >
+                  -5s
+                </button>
+                <button
+                    onClick={ togglePlay }
+                    className="btn-primary px-6 py-3"
+                >
+                  {isPlaying ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                        </svg>
+                        Pause
+                      </span>
+                  ) : (
+                      <span className="flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                        Play
+                      </span>
+                  )}
+                </button>
+                <button
+                    onClick={() => seek(Math.min(duration, currentTime + 5))}
+                    className="btn-ghost px-3 py-2 text-sm"
+                    title="Avancer de 5s"
+                >
+                  +5s
+                </button>
+              </div>
+
+              {/* Sync section */}
+              <div className="flex items-center justify-between gap-4 rounded-xl border border-primary-darkest/20 bg-primary-darkest/5 px-4 py-3">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Synchroniser</p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {canSync ? "Ligne prête à synchroniser" : "Sélectionne une ligne"}
+                  </p>
+                </div>
+                <button
+                    className="btn-primary px-4 py-2"
                     onClick={ onSyncLine }
                     disabled={ !canSync }
                 >

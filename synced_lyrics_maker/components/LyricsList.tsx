@@ -100,18 +100,17 @@ const LyricsList: React.FC<LyricsListProps> = ({ lyrics, selectedLineId, onSelec
 
     if (lyrics.length === 0) {
         return (
-            <div className="rounded-xl border border-primary-darkest/30 bg-gradient-to-br from-slate-800/50 to-slate-900/50 p-6 text-center">
-                <div className="text-4xl mb-3"></div>
-                <p className="text-sm text-slate-300">
-                    Aucune lyric pour le moment. Colle tes lyrics à gauche puis clique{" "}
-                    <span className="font-bold text-primary-darkest">Load Lyrics</span>
+            <div className="rounded-xl border border-white/5 bg-slate-800/30 px-6 py-12 text-center">
+                <p className="text-sm text-slate-400">
+                    Aucune lyric chargée. Colle tes paroles à gauche puis clique{" "}
+                    <span className="font-semibold text-primary-dark">Load Lyrics</span>
                 </p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
             {lyrics.map((line, index) => {
                 const isSelected = selectedLineId === line.id;
                 const isSynced = line.isSynced;
@@ -122,30 +121,19 @@ const LyricsList: React.FC<LyricsListProps> = ({ lyrics, selectedLineId, onSelec
                     <div
                         key={line.id}
                         className={[
-                            "group rounded-xl border p-5 transition-all duration-200 cursor-pointer transform hover:scale-[1.02]",
-                            "bg-gradient-to-br from-slate-800/60 to-slate-900/60 hover:from-slate-800/80 hover:to-slate-900/80",
-                            "border-white/10 hover:border-white/20",
-                            isSynced ? "ring-2 ring-primary-darkest/40 shadow-lg shadow-primary-darkest/20" : "",
-                            isSelected ? "ring-2 ring-primary/60 border-primary/60 shadow-xl shadow-primary/30" : "",
+                            "lyric-line group",
+                            isSynced ? "lyric-line--synced" : "lyric-line--not-synced",
+                            isSelected ? "lyric-line--selected" : "",
+                            "hover:bg-slate-700/40"
                         ].join(" ")}
                         onClick={() => onSelectLine(line.id)}
                     >
-                        <div className="flex items-start justify-between gap-4">
-                            <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-xs font-bold text-slate-400 bg-slate-700/50 px-2 py-1 rounded-md">
-                                        #{index + 1}
-                                    </span>
-                                    {isSynced ? (
-                                        <span className="rounded-full bg-gradient-to-r from-primary-darkest to-primary-dark px-3 py-1 text-xs font-bold text-white shadow-md">
-                                            ✓ Synced
-                                        </span>
-                                    ) : (
-                                        <span className="rounded-full bg-slate-700/50 border border-white/10 px-3 py-1 text-xs font-semibold text-slate-400">
-                                            ○ Not synced
-                                        </span>
-                                    )}
-                                </div>
+                        <div className="flex items-center justify-between gap-4">
+                            {/* Left side: index + text */}
+                            <div className="min-w-0 flex-1 flex items-center gap-3">
+                                <span className="text-xs font-mono text-slate-500 w-6 shrink-0">
+                                    {index + 1}
+                                </span>
 
                                 {/* Texte de la lyric - éditable en double-clic */}
                                 {isEditingText ? (
@@ -156,21 +144,29 @@ const LyricsList: React.FC<LyricsListProps> = ({ lyrics, selectedLineId, onSelec
                                         onChange={(e) => setTextValue(e.target.value)}
                                         onKeyDown={(e) => handleTextKeyDown(e, line.id)}
                                         onBlur={() => confirmTextEdit(line.id)}
-                                        className="w-full text-sm font-semibold text-foreground bg-slate-700 px-3 py-2 rounded-lg border border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/60 leading-relaxed"
+                                        className="flex-1 text-sm text-foreground bg-slate-700 px-3 py-1.5 rounded-lg border border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/60"
                                         onClick={(e) => e.stopPropagation()}
                                     />
                                 ) : (
-                                    <div
-                                        className="mt-2 text-sm font-semibold text-foreground leading-relaxed cursor-text hover:bg-slate-700/30 px-2 py-1 -mx-2 rounded-lg transition-colors"
+                                    <span
+                                        className="text-sm text-foreground truncate cursor-text hover:text-primary-light transition-colors"
                                         onDoubleClick={(e) => startEditingText(line.id, line.text, e)}
                                         title="Double-clic pour éditer"
                                     >
                                         {line.text}
-                                    </div>
+                                    </span>
                                 )}
                             </div>
 
-                            <div className="flex shrink-0 flex-col items-end gap-3">
+                            {/* Right side: status + timestamp + actions */}
+                            <div className="flex items-center gap-3 shrink-0">
+                                {/* Badge de statut */}
+                                {isSynced ? (
+                                    <span className="badge badge--synced text-[10px]">Synced</span>
+                                ) : (
+                                    <span className="badge badge--not-synced text-[10px]">Not synced</span>
+                                )}
+
                                 {/* Timestamp éditable */}
                                 {isEditingTimestamp ? (
                                     <input
@@ -180,37 +176,42 @@ const LyricsList: React.FC<LyricsListProps> = ({ lyrics, selectedLineId, onSelec
                                         onChange={(e) => setTimestampValue(e.target.value)}
                                         onKeyDown={(e) => handleTimestampKeyDown(e, line.id)}
                                         onBlur={() => confirmTimestampEdit(line.id)}
-                                        placeholder="--:--:--"
-                                        className="w-24 text-sm font-mono font-bold text-primary-dark bg-slate-700 px-3 py-1.5 rounded-lg border border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/60"
+                                        placeholder="0:00.00"
+                                        className="w-20 text-xs font-mono text-primary-dark bg-slate-700 px-2 py-1 rounded border border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/60"
                                         onClick={(e) => e.stopPropagation()}
                                     />
                                 ) : (
                                     <button
                                         onClick={(e) => startEditingTimestamp(line.id, line.timestamp, e)}
-                                        className="text-sm font-mono font-bold text-primary-dark bg-slate-700/50 px-3 py-1.5 rounded-lg hover:bg-slate-600/50 hover:ring-2 hover:ring-primary/30 transition-all"
-                                        title="Cliquer pour éditer le timestamp"
+                                        className="text-xs font-mono text-primary-dark bg-slate-700/50 px-2 py-1 rounded hover:bg-slate-600/50 transition-colors min-w-[70px] text-center"
+                                        title="Cliquer pour éditer"
                                     >
-                                        {line.timestamp === null ? "--:--:--" : formatTime(line.timestamp as number)}
+                                        {line.timestamp === null ? "--:--.--" : formatTime(line.timestamp as number)}
                                     </button>
                                 )}
 
-                                {/* Boutons d'action */}
-                                <div className="flex items-center gap-2">
+                                {/* Actions - visible au hover */}
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
-                                        className="btn-danger px-3 py-1.5 text-xs"
+                                        className="p-1.5 text-xs rounded bg-slate-700/50 hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             onClearTimestamp(line.id);
                                         }}
                                         title="Effacer le timestamp"
                                     >
-                                        Clear
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
                                     </button>
                                     <button
-                                        className="px-3 py-1.5 text-xs rounded-lg bg-red-900/50 hover:bg-red-800/70 text-red-300 hover:text-red-200 border border-red-700/50 transition-colors"
+                                        className="p-1.5 text-xs rounded bg-slate-700/50 hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors"
                                         onClick={(e) => handleDeleteLine(line.id, e)}
                                         title="Supprimer cette ligne"
-                                    >🗑️
+                                    >
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
                                     </button>
                                 </div>
                             </div>

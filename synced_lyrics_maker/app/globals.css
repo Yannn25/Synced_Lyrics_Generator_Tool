@@ -98,4 +98,94 @@ body {
   .kbd {
     @apply rounded-lg border border-white/20 bg-slate-700/50 px-3 py-1 text-xs font-bold text-foreground shadow-md;
   }
+
+  .btn-secondary {
+    @apply bg-slate-600/50 text-slate-100 hover:bg-slate-500/50 border border-primary-darkest/30 hover:border-primary-darkest/60;
+  }
+
+  /* Lyric line states */
+  .lyric-line {
+    @apply rounded-xl border p-4 transition-all duration-200 cursor-pointer;
+  }
+
+  .lyric-line--not-synced {
+    @apply bg-slate-700/30 border-l-4 border-l-slate-500 border-white/10 text-slate-300;
+  }
+
+  .lyric-line--synced {
+    @apply bg-emerald-500/10 border-l-4 border-l-emerald-500 border-emerald-500/20 text-emerald-100;
+  }
+
+  .lyric-line--selected {
+    @apply bg-primary-darkest/15 border-l-4 border-l-primary-darkest border-primary-darkest/30 ring-2 ring-primary-darkest/30;
+  }
+
+  /* Progress bar custom styling */
+  .progress-bar {
+    @apply h-3 w-full cursor-pointer appearance-none rounded-full bg-slate-700/60;
+  }
+
+  .progress-bar::-webkit-slider-runnable-track {
+    @apply h-3 rounded-full;
+  }
+
+  .progress-bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 1.25rem;
+    width: 1.25rem;
+    border-radius: 50%;
+    background: linear-gradient(to right, var(--color-primary-darkest), var(--color-primary-dark));
+    box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.5);
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .progress-bar::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+  }
+
+  .progress-bar::-moz-range-thumb {
+    height: 1.25rem;
+    width: 1.25rem;
+    border-radius: 50%;
+    background: linear-gradient(to right, var(--color-primary-darkest), var(--color-primary-dark));
+    box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.5);
+    border: 0;
+    cursor: pointer;
+  }
+
+  .progress-bar::-moz-range-track {
+    @apply h-3 rounded-full bg-slate-700/60;
+  }
+
+  /* Status badges */
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold;
+  }
+
+  .badge--synced {
+    @apply bg-emerald-500/20 text-emerald-400 border border-emerald-500/30;
+  }
+
+  .badge--not-synced {
+    @apply bg-slate-700/50 text-slate-400 border border-white/10;
+  }
+
+  .badge--selected {
+    @apply bg-primary-darkest/20 text-primary-dark border border-primary-darkest/30;
+  }
+
+  /* Scrollbar styling */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-slate-800/50 rounded-full;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-slate-600 rounded-full hover:bg-slate-500;
+  }
 }

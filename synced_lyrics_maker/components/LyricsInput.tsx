@@ -25,42 +25,40 @@ const LyricsInput: React.FC<LyricsInputProps> = ({ onLoadLyrics }) => {
         <div className="card">
           <div className="card-header">
             <div>
-              <h2 className="card-title">Lyrics input</h2>
-              <p className="card-subtitle">1 ligne = 1 lyric.</p>
+              <h2 className="card-title">Lyrics</h2>
+              <p className="card-subtitle">Une ligne par parole</p>
             </div>
           </div>
 
           <div className="card-body flex flex-col gap-4">
-            <label htmlFor="lyrics-textarea" className="text-sm font-bold text-foreground">
-               Coller vos lyrics ici ou écrivez-les manuellement
-            </label>
-
             <textarea
               id="lyrics-textarea"
-              className="textarea"
-              rows={10}
-              placeholder="Colle tes lyrics ici, une ligne par parole..."
+              className="textarea font-mono text-sm"
+              rows={8}
+              placeholder="Verse 1&#10;Chorus&#10;Verse 2&#10;..."
               value={lyricsText}
               onChange={e => setLyricsText(e.target.value)}
             />
 
             <div className="flex items-center justify-between gap-4">
-                <p className="text-xs text-slate-400">
-                  { lineCount > 0 ? `${lineCount} ligne(s) détectée(s)` : 'Aucune ligne détectée' }
-                </p>
-
-                { isLoaded && (
-                    <span className="text-xs text-green-400 font-bold">
-                        ✓ Lyrics chargées !
+                <div className="flex items-center gap-3">
+                    <span className="text-xs text-slate-400">
+                        {lineCount > 0 ? `${lineCount} ligne${lineCount > 1 ? 's' : ''}` : 'Vide'}
                     </span>
-                )}
+
+                    {isLoaded && (
+                        <span className="text-xs text-emerald-400 font-medium animate-pulse">
+                            Chargé
+                        </span>
+                    )}
+                </div>
 
               <button
                   className="btn-primary"
                   onClick={handleLoadLyrics}
                   disabled={!lyricsText.trim()}
               >
-                  Load Lyrics
+                  Charger
               </button>
             </div>
           </div>
