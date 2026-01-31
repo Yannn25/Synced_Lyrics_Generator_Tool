@@ -9,7 +9,7 @@ const LyricsList: React.FC<LyricsListProps> = ({ lyrics, selectedLineId, onSelec
     const [editValue, setEditValue] = useState<string>("");
     const inputRef = useRef<HTMLInputElement | null >(null);
 
-    // Focus l'input quand on entre en mode édition
+    // Focus on input for edit mode
     useEffect(() => {
         if (editingLineId !== null && inputRef.current) {
             inputRef.current.focus();
@@ -21,7 +21,7 @@ const LyricsList: React.FC<LyricsListProps> = ({ lyrics, selectedLineId, onSelec
     const startEditing = (lineId: number, currentTimestamp: number | null, e: React.MouseEvent) => {
         e.stopPropagation();
         setEditingLineId(lineId);
-        setEditValue(currentTimestamp !== null ? formatTimestamp(currentTimestamp) : "");
+        setEditValue(currentTimestamp !== null ? formatTime(currentTimestamp) : "");
     };
 
     const confirmEdit = (lineId: number) => {

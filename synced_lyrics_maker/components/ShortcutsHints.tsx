@@ -17,8 +17,8 @@ const ShortcutsHint: React.FC = () => {
             <span className="text-primary-dark font-semibold">Appuyer sur la touche Entrer</span>
           </li>
           <li className="flex items-center justify-between gap-4 p-3 rounded-lg bg-slate-800/30 border border-white/5">
-            <span className="text-slate-300"> Sélectionner une ligne</span>
-            <span className="text-primary-dark font-semibold">Clic sur le bouton sync en dessous de l'audio</span>
+            <span className="text-slate-300"> Modifier le temps afficher d'une ligne</span>
+            <span className="text-primary-dark font-semibold">Clic sur le l'encart du temps afin de modifier le temps afficher manuellement</span>
           </li>
         </ul>
       </div>
