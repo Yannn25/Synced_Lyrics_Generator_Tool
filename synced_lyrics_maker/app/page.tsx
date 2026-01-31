@@ -80,17 +80,15 @@ export default function Home() {
 
   return (
     <div className="app-shell">
-      <header className="sticky top-0 z-10 border-b border-white/10 bg-slate-900/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div>
-            <h1 className="text-2xl text-center font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary-darkest via-primary-dark to-primary md:text-3xl">
-              Synced Lyrics Maker
-            </h1>
-          </div>
+      <header className="sticky top-0 z-10 border-b border-white/10 bg-slate-900/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-center px-6 py-6 md:px-10">
+          <h1 className="text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary-darkest via-primary-dark to-primary md:text-3xl">
+            Synced Lyrics Maker
+          </h1>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-8 md:py-12">
+      <main className="mx-auto w-full max-w-7xl px-6 py-8 md:px-10 md:py-12">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           <section className="lg:col-span-5 flex flex-col gap-8">
             <AudioPlayer
