@@ -18,7 +18,8 @@ export default function Home() {
       selectLine,
       clearTimestamp,
       syncAndAdvance,
-      clearList
+      clearList,
+      updateTimestamp,
   } = useLyrics();
 
   const audio = useAudio();
@@ -157,6 +158,7 @@ export default function Home() {
                     selectedLineId={selectedLineId}
                     onSelectLine={selectLine}
                     onClearTimestamp={clearTimestamp}
+                    onUpdateTimestamp={updateTimestamp}
                 />
               </div>
             </div>

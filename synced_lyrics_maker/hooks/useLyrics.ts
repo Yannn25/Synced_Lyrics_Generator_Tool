@@ -9,7 +9,7 @@ import { LyricLine } from "@/types";
 
 export function useLyrics() {
     const [lyrics, setLyrics] = useState<LyricLine[]>([]);
-    const [selectedLineId, setSelectedLineId] = useState<string | null>(null);
+    const [selectedLineId, setSelectedLineId] = useState<number | null>(null);
 
     // Parse lyrics text and set state
     const loadLyrics = useCallback((text: string) => {
@@ -19,36 +19,36 @@ export function useLyrics() {
     }, []);
 
     // Select a line in the list
-    const selectLine = useCallback( (lineId: string | null) => {
+    const selectLine = useCallback( (lineId: number | null) => {
         setSelectedLineId(lineId);
     }, []);
 
     // Sync a line with timestamp from audio
-    const syncLine = useCallback( (lineId: string, timestamp: number) => {
+    const syncLine = useCallback( (lineId: number, timestamp: number) => {
         setLyrics(prev => prev.map(line =>
             (line.id === lineId ? {...line, timestamp, isSynced: true} : line)));
     }, []);
 
     // Edit a timestamp for a line
-    const updateTimestamp = useCallback( (lineId: string, timestamp: number | null) => {
+    const updateTimestamp = useCallback( (lineId: number, timestamp: number | null) => {
         setLyrics(prev => prev.map(line =>
             (line.id === lineId ? {...line, timestamp, isSynced : timestamp !== null } : line)));
     }, []);
 
     // Clear a timestamp for a line
-    const clearTimestamp = useCallback( (lineId: string) => {
+    const clearTimestamp = useCallback( (lineId: number) => {
         setLyrics(prev => prev.map(line =>
             (line.id === lineId ? {...line, timestamp: null, isSynced: false} : line)));
     }, []);
 
     // Get next unsynced line (auto-advance)
-    const getNextUnsyncedLine = useCallback((): string | null => {
+    const getNextUnsyncedLine = useCallback((): number | null => {
         const unsynced = lyrics.find(line => !line.isSynced);
         return unsynced?.id ?? null;
     }, [lyrics]);
 
     // Auto-select next unsynced line after sync
-    const syncAndAdvance = useCallback((lineId: string, timestamp: number) => {
+    const syncAndAdvance = useCallback((lineId: number, timestamp: number) => {
         setLyrics(prev => {
             const updated = prev.map(line =>
                 line.id === lineId ? { ...line, timestamp, isSynced: true } : line
@@ -66,6 +66,11 @@ export function useLyrics() {
         setSelectedLineId(null);
     }, []);
 
+    const onUpdateTimestamp = useCallback((lineId: number, timestamp: number | null) => {
+        setLyrics(prev => prev.map(line =>
+            (line.id === lineId ? {...line, timestamp, isSynced : timestamp !== null } : line)));
+    })
+
     return {
         lyrics,
         selectedLineId,
@@ -74,6 +79,7 @@ export function useLyrics() {
         syncLine,
         updateTimestamp,
         clearTimestamp,
+        onUpdateTimestamp,
         getNextUnsyncedLine,
         syncAndAdvance,
         clearList

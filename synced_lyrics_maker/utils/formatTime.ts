@@ -2,6 +2,7 @@
  * Utility functions for formatting time strings.
  * The output format is a string "mm:ss:ms"
  */
+import React from "react";
 
 export function formatTime(seconds: number): string {
     const mins = Math.floor(seconds / 60);
@@ -14,3 +15,19 @@ export function formatTime(seconds: number): string {
 
     return `${minsStr}:${secsStr}.${centiStr}`;
 }
+
+// Parser a string in mm:ss.cc or ss.cc to seconds number
+export function parseTimestamp(value: string): number | null {
+    const match = value.match(/^(\d{1,2}):(\d{1,2}(?:\.\d{0,2})?)$/);
+    if (match) {
+        const minutes = parseInt(match[1], 10);
+        const seconds = parseFloat(match[2]);
+        if (seconds < 60) {
+            return minutes * 60 + seconds;
+        }}
+    const secondsOnly = parseFloat(value);
+    if (!isNaN(secondsOnly) && secondsOnly >= 0) {
+        return secondsOnly;
+    }
+    return null;
+};

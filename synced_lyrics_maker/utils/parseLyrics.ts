@@ -6,7 +6,7 @@ import {v4 as uuidv4} from "uuid";
  * - Split the text into lines
  * - Trim each line
  * - Remove empty lines
- * - Generate a id for each line
+ * - Generate an id for each line
  * - Initialize a LyricLine object for each line
  */
 

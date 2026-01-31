@@ -1,9 +1,51 @@
 'use client'
 
-import React, {useState} from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { LyricsListProps } from "@/types";
+import { formatTime, parseTimestamp } from "@/utils/formatTime";
 
-const LyricsList: React.FC<LyricsListProps> = ({ lyrics, selectedLineId, onSelectLine, onClearTimestamp }) => {
+const LyricsList: React.FC<LyricsListProps> = ({ lyrics, selectedLineId, onSelectLine, onClearTimestamp, onUpdateTimestamp }) => {
+    const [editingLineId, setEditingLineId] = useState<number | null>(null);
+    const [editValue, setEditValue] = useState<string>("");
+    const inputRef = useRef<HTMLInputElement | null >(null);
+
+    // Focus l'input quand on entre en mode édition
+    useEffect(() => {
+        if (editingLineId !== null && inputRef.current) {
+            inputRef.current.focus();
+            inputRef.current.select();
+        }
+    }, [editingLineId]);
+
+
+    const startEditing = (lineId: number, currentTimestamp: number | null, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditingLineId(lineId);
+        setEditValue(currentTimestamp !== null ? formatTimestamp(currentTimestamp) : "");
+    };
+
+    const confirmEdit = (lineId: number) => {
+        const parsed = parseTimestamp(editValue);
+        onUpdateTimestamp(lineId, parsed);
+        setEditingLineId(null);
+        setEditValue("");
+    };
+
+    const cancelEdit = () => {
+        setEditingLineId(null);
+        setEditValue("");
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent, lineId: number) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            confirmEdit(lineId);
+        } else if (e.key === "Escape") {
+            e.preventDefault();
+            cancelEdit();
+        }
+    };
+
     if (lyrics.length === 0) {
         return (
             <div className="rounded-xl border border-primary-darkest/30 bg-gradient-to-br from-slate-800/50 to-slate-900/50 p-6 text-center">
@@ -21,8 +63,9 @@ const LyricsList: React.FC<LyricsListProps> = ({ lyrics, selectedLineId, onSelec
         {lyrics.map((line, index) => {
             const isSelected = selectedLineId === line.id;
             const isSynced = line.isSynced;
+            const isEditing = editingLineId === line.id;
 
-        return (
+            return (
             <div
                 key={line.id}
                 className={[
@@ -56,14 +99,29 @@ const LyricsList: React.FC<LyricsListProps> = ({ lyrics, selectedLineId, onSelec
                 </div>
               </div>
 
-              <div className="flex shrink-0 flex-col items-end gap-3">
-                <span className="text-sm font-mono font-bold text-primary-dark bg-slate-700/50 px-3 py-1.5 rounded-lg">
-                  {line.timestamp !== null
-                    ? `${Math.floor(line.timestamp / 60)}:${(line.timestamp % 60)
-                        .toFixed(2)
-                        .padStart(5, "0")}`
-                    : "--:--.--"}
-                </span>
+                <div className="flex shrink-0 flex-col items-end gap-3">
+                    {isEditing ? (
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onKeyDown={(e) => handleKeyDown(e, line.id)}
+                            onBlur={() => confirmEdit(line.id)}
+                            placeholder="--:--:--"
+                            className="w-24 text-sm font-mono font-bold text-primary-dark bg-slate-700 px-3 py-1.5 rounded-lg border border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/60"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    ) : (
+                        <button
+                            onClick={(e) => startEditing(line.id, line.timestamp, e)}
+                            className="text-sm font-mono font-bold text-primary-dark bg-slate-700/50 px-3 py-1.5 rounded-lg hover:bg-slate-600/50 hover:ring-2 hover:ring-primary/30 transition-all"
+                            title="Cliquer pour éditer"
+                        >
+                            { line.timestamp === null ? "--:--:--" : formatTime(line.timestamp as number)}
+                        </button>
+                    )}
+
 
                 <button
                   className="btn-danger px-3 py-1.5 text-xs"
