@@ -54,3 +54,18 @@ export interface CurrentLyricDisplayProps {
     nextLine: LyricLine | null;
     progress: number;
 }
+
+// Props for the multiple step workflow
+export type WorkflowStep = 1 | 2 | 3;
+
+export interface WorkflowState {
+    currentStep: WorkflowStep;
+    canGoToStep2: boolean; // Audio  AND lyrics loaded
+    canGoToStep3: boolean; // At least one line synced
+}
+
+export interface StepIndicatorProps {
+    currentStep: WorkflowStep;
+    canGoToStep: (step: WorkflowStep) => boolean;
+    onStepClick: (step: WorkflowStep) => void;
+}
