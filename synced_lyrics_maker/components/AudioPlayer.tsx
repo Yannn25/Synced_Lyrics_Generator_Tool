@@ -1,8 +1,16 @@
 'use client'
 
-import React, {useRef} from "react";
+import React, { useRef } from "react";
+import { Play, Pause, Upload, Rewind, FastForward, Clock } from "lucide-react";
 import { useAudio } from "@/hooks/useAudio";
 import { formatTime } from "@/utils/formatTime";
+
+// Composants shadcn/ui
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 interface AudioPlayerProps {
   audio: ReturnType<typeof useAudio>;
@@ -10,9 +18,8 @@ interface AudioPlayerProps {
   canSync: boolean;
 }
 
-const AudioPlayer: React.FC<AudioPlayerProps> = ({ audio, onSyncLine, canSync}) => {
+const AudioPlayer: React.FC<AudioPlayerProps> = ({ audio, onSyncLine, canSync }) => {
   const {
-    audioRef,
     isPlaying,
     currentTime,
     duration,
@@ -23,9 +30,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audio, onSyncLine, canSync}) 
     seek,
   } = audio;
 
-  const fileInputRef = useRef< HTMLInputElement | null >(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Handling audio File
+  // Gestion du fichier audio
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -33,139 +40,210 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audio, onSyncLine, canSync}) 
     }
   };
 
-  // Handling progress bar
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTime = parseFloat(e.target.value);
-    seek(newTime);
+  // Gestion du slider de progression
+  const handleSliderChange = (value: number[]) => {
+    seek(value[0]);
   };
 
-  // Calculation of the percentage of the progress bar
-  const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
+  // Ouvrir le sélecteur de fichiers
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
 
   return (
-    <div className="card">
-      {/* Hidden audio element */}
-      <audio ref={audioRef} />
+    <Card className={cn(
+      "relative overflow-hidden",
+      // Effet Glass
+      "bg-slate-900/40 backdrop-blur-xl",
+      "border border-white/10",
+      "shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
+    )}>
+      {/* Reflet glass subtil en haut */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-      <div className="card-header">
-        <div>
-          <h2 className="card-title">Audio</h2>
-          <p className="card-subtitle">Charge un fichier puis contrôle la lecture.</p>
-        </div>
-      </div>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-foreground">
+          <Upload className="h-5 w-5 text-primary" />
+          Audio
+        </CardTitle>
+        <CardDescription>
+          Charge un fichier puis contrôle la lecture.
+        </CardDescription>
+      </CardHeader>
 
-      <div className="card-body flex flex-col gap-5">
-
-        {/* Upload audio file  */}
-        <div className="flex flex-col gap-2">
-          <label htmlFor="audio-file" className="text-sm font-semibold text-foreground">
-             Fichier audio
-          </label>
+      <CardContent className="flex flex-col gap-5">
+        {/* Input file caché + bouton stylisé */}
+        <div className="flex flex-col gap-3">
           <input
-              ref={fileInputRef}
-              id="audio-file"
-              type="file"
-              accept="audio/*"
-              onChange={handleFileChange}
-              className="input file:mr-4 file:rounded-lg file:border-0 file:bg-gradient-to-r file:from-primary-darkest file:to-primary-dark file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:from-primary-dark hover:file:to-primary file:shadow-md file:transition-all file:cursor-pointer"
+            ref={fileInputRef}
+            id="audio-file"
+            type="file"
+            accept="audio/*"
+            onChange={handleFileChange}
+            className="hidden"
           />
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  onClick={handleUploadClick}
+                  className={cn(
+                    "w-full h-12 gap-3",
+                    "bg-slate-800/50 border-white/10 hover:bg-slate-700/50 hover:border-white/20",
+                    "transition-all duration-300"
+                  )}
+                >
+                  <Upload className="h-4 w-4" />
+                  {isLoaded ? "Changer de fichier" : "Choisir un fichier audio"}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Formats supportés : MP3, WAV, OGG, etc.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
-        {/* Error message */}
+        {/* Message d'erreur */}
         {error && (
-            <div className="rounded-lg bg-red-500/15 border border-red-500/40 px-4 py-3 text-sm text-red-400">
-              {error}
-            </div>
+          <div className="rounded-lg bg-red-500/15 border border-red-500/30 px-4 py-3 text-sm text-red-400">
+            {error}
+          </div>
         )}
 
-        {/* Message if audio file is not loaded */}
+        {/* Message si pas d'audio chargé */}
         {!isLoaded && !error && (
-            <div className="rounded-xl bg-slate-700/20 border border-white/5 px-4 py-8 text-center">
-              <p className="text-sm text-slate-400">Charger un fichier audio pour commencer</p>
-            </div>
+          <div className={cn(
+            "rounded-xl px-4 py-8 text-center",
+            "bg-slate-800/30 border border-white/5"
+          )}>
+            <Upload className="h-8 w-8 mx-auto mb-3 text-slate-500" />
+            <p className="text-sm text-slate-400">Charger un fichier audio pour commencer</p>
+          </div>
         )}
 
-        {/* Audio controls - Shown if audio is loaded */}
-        { isLoaded && (
-            <>
-              {/* Progress bar avec timestamp */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between text-sm font-mono">
-                  <span className="text-primary-dark font-bold">{formatTime(currentTime)}</span>
-                  <span className="text-slate-500">{formatTime(duration)}</span>
-                </div>
-                <input
-                    type="range"
-                    min="0"
-                    max={ duration || 100 }
-                    step="0.01"
-                    value={ currentTime }
-                    onChange={handleSeek}
-                    className="progress-bar"
-                    style={{
-                      background: `linear-gradient(to right, #0ea5e9 0%, #38bdf8 ${progressPercentage}%, rgba(51, 65, 85, 0.6) ${progressPercentage}%)`
-                    }}
-                />
+        {/* Contrôles audio - Affichés si audio chargé */}
+        {isLoaded && (
+          <>
+            {/* Barre de progression avec timestamps */}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between text-sm font-mono">
+                <span className="text-primary font-bold">{formatTime(currentTime)}</span>
+                <span className="text-muted-foreground">{formatTime(duration)}</span>
               </div>
 
-              {/* Contrôles de lecture */}
-              <div className="flex items-center justify-center gap-3">
-                <button
-                    onClick={() => seek(Math.max(0, currentTime - 5))}
-                    className="btn-ghost px-3 py-2 text-sm"
-                    title="Reculer de 5s"
-                >
-                  -5s
-                </button>
-                <button
-                    onClick={ togglePlay }
-                    className="btn-primary px-6 py-3"
-                >
-                  {isPlaying ? (
-                      <span className="flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                        </svg>
-                        Pause
-                      </span>
-                  ) : (
-                      <span className="flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                        Play
-                      </span>
-                  )}
-                </button>
-                <button
-                    onClick={() => seek(Math.min(duration, currentTime + 5))}
-                    className="btn-ghost px-3 py-2 text-sm"
-                    title="Avancer de 5s"
-                >
-                  +5s
-                </button>
-              </div>
+              <Slider
+                value={[currentTime]}
+                min={0}
+                max={duration || 100}
+                step={0.01}
+                onValueChange={handleSliderChange}
+                className="cursor-pointer"
+              />
+            </div>
 
-              {/* Sync section */}
-              <div className="flex items-center justify-between gap-4 rounded-xl border border-primary-darkest/20 bg-primary-darkest/5 px-4 py-3">
+            {/* Boutons de contrôle */}
+            <div className="flex items-center justify-center gap-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => seek(Math.max(0, currentTime - 5))}
+                      className="gap-1 text-muted-foreground hover:text-foreground"
+                    >
+                      <Rewind className="h-4 w-4" />
+                      5s
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Reculer de 5 secondes</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <Button
+                variant="default"
+                size="lg"
+                onClick={togglePlay}
+                className={cn(
+                  "px-8 gap-2 font-semibold",
+                  "bg-gradient-to-r from-primary to-blue-500 hover:from-primary/90 hover:to-blue-500/90",
+                  "shadow-lg shadow-primary/20"
+                )}
+              >
+                {isPlaying ? (
+                  <>
+                    <Pause className="h-5 w-5" />
+                    Pause
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-5 w-5" />
+                    Play
+                  </>
+                )}
+              </Button>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => seek(Math.min(duration, currentTime + 5))}
+                      className="gap-1 text-muted-foreground hover:text-foreground"
+                    >
+                      5s
+                      <FastForward className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Avancer de 5 secondes</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+
+            {/* Section Sync
+            <div className={cn(
+              "flex items-center justify-between gap-4 rounded-xl px-4 py-3",
+              "bg-primary/5 border border-primary/20"
+            )}>
+              <div className="flex items-center gap-3">
+                <Clock className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-sm font-semibold text-foreground">Synchroniser</p>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-muted-foreground">
                     {canSync ? "Ligne prête à synchroniser" : "Sélectionne une ligne"}
                   </p>
                 </div>
-                <button
-                    className="btn-primary px-4 py-2"
-                    onClick={ onSyncLine }
-                    disabled={ !canSync }
-                >
-                  Sync
-                </button>
               </div>
-            </>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={onSyncLine}
+                      disabled={!canSync}
+                      className={cn(
+                        canSync && "bg-green-500 hover:bg-green-600"
+                      )}
+                    >
+                      Sync
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {canSync ? "Synchroniser la ligne sélectionnée" : "Sélectionnez d'abord une ligne"}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div> */}
+          </>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
