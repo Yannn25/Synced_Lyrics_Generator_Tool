@@ -3,47 +3,39 @@
 import React from "react";
 import { motion } from "framer-motion";
 import {
-  FileJson, 
-  FileText, 
+  FileText,
   Play,
   CheckCircle2,
-  Clock, 
+  Clock,
   ArrowLeft,
   Sparkles,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useAudio } from "@/hooks/useAudio";
 import { useExport } from "@/hooks/useExport";
 import { LyricLine } from "@/types";
 import { formatTime } from "@/utils/formatTime";
 import { cn } from "@/lib/utils";
-import { stepVariants, stepTransition, cardVariants, staggerContainerVariants, staggerItemVariants } from "@/lib/animations";
+import { stepVariants, stepTransition, staggerContainerVariants, staggerItemVariants } from "@/lib/animations";
+
+// Composant réutilisable
+import ExportPanel from "@/components/ExportPanel";
 
 interface StepExportProps {
-  // Audio (pour preview lyrics)
   audio: ReturnType<typeof useAudio>;
-  
-  // Lyrics
   lyrics: LyricLine[];
-  
-  // Exporter hook
   exporter: ReturnType<typeof useExport>;
-  
-  // Navigation
   onBack: () => void;
-
-  // Ouvre la LyricsPreviewModal (preview lyrics en temps réel avec audio)
   onPreviewLyrics: () => void;
 }
 
 /**
  * StepExport - Conteneur pour l'étape 3 du workflow (Export)
- * 
- * Affiche:
- * - Stats finales (lignes synced, durée, etc.)
- * - Bouton Preview lyrics (ouvre LyricsPreviewModal)
- * - Boutons d'export (JSON / LRC)
+ *
+ * Utilise ExportPanel pour les boutons d'export.
+ * Affiche des stats finales et le bouton Preview.
  */
 export default function StepExport({
   audio,
@@ -52,18 +44,18 @@ export default function StepExport({
   onBack,
   onPreviewLyrics,
 }: StepExportProps) {
-  
-  const { quickExport, getExportStats } = exporter;
-  const stats = getExportStats(lyrics);
-  
+  const stats = exporter.getExportStats(lyrics);
+
   // Calcul de la durée totale synced
-  const syncedLyrics = lyrics.filter(l => l.isSynced && l.timestamp !== null);
-  const firstTimestamp = syncedLyrics.length > 0 
-    ? Math.min(...syncedLyrics.map(l => l.timestamp!)) 
-    : 0;
-  const lastTimestamp = syncedLyrics.length > 0 
-    ? Math.max(...syncedLyrics.map(l => l.timestamp!)) 
-    : 0;
+  const syncedLyrics = lyrics.filter((l) => l.isSynced && l.timestamp !== null);
+  const firstTimestamp =
+    syncedLyrics.length > 0
+      ? Math.min(...syncedLyrics.map((l) => l.timestamp!))
+      : 0;
+  const lastTimestamp =
+    syncedLyrics.length > 0
+      ? Math.max(...syncedLyrics.map((l) => l.timestamp!))
+      : 0;
   const syncedDuration = lastTimestamp - firstTimestamp;
 
   return (
@@ -86,8 +78,8 @@ export default function StepExport({
             Prévisualise puis télécharge tes lyrics synchronisées
           </p>
         </div>
-        
-        {/* Bouton Preview Lyrics — ouvre la LyricsPreviewModal */}
+
+        {/* Bouton Preview Lyrics */}
         <Button
           variant="outline"
           onClick={onPreviewLyrics}
@@ -106,112 +98,109 @@ export default function StepExport({
         animate="animate"
         className="grid grid-cols-2 md:grid-cols-4 gap-4"
       >
-        <motion.div variants={staggerItemVariants} className="card p-4 text-center">
+        <motion.div
+          variants={staggerItemVariants}
+          className={cn(
+            "p-4 text-center rounded-xl border",
+            "bg-slate-900/40 backdrop-blur-xl border-white/10"
+          )}
+        >
           <div className="flex items-center justify-center gap-2 mb-2">
             <FileText className="h-4 w-4 text-primary" />
-            <span className="text-xs text-muted-foreground uppercase tracking-wider">Lignes</span>
+            <span className="text-xs text-muted-foreground uppercase tracking-wider">
+              Lignes
+            </span>
           </div>
-          <span className="text-2xl font-bold text-foreground">{stats.total}</span>
+          <span className="text-2xl font-bold text-foreground">
+            {stats.total}
+          </span>
         </motion.div>
 
-        <motion.div variants={staggerItemVariants} className="card p-4 text-center">
+        <motion.div
+          variants={staggerItemVariants}
+          className={cn(
+            "p-4 text-center rounded-xl border",
+            "bg-slate-900/40 backdrop-blur-xl border-white/10"
+          )}
+        >
           <div className="flex items-center justify-center gap-2 mb-2">
             <CheckCircle2 className="h-4 w-4 text-green-400" />
-            <span className="text-xs text-muted-foreground uppercase tracking-wider">Synced</span>
+            <span className="text-xs text-muted-foreground uppercase tracking-wider">
+              Synced
+            </span>
           </div>
-          <span className="text-2xl font-bold text-green-400">{stats.synced}</span>
+          <span className="text-2xl font-bold text-green-400">
+            {stats.synced}
+          </span>
         </motion.div>
 
-        <motion.div variants={staggerItemVariants} className="card p-4 text-center">
+        <motion.div
+          variants={staggerItemVariants}
+          className={cn(
+            "p-4 text-center rounded-xl border",
+            "bg-slate-900/40 backdrop-blur-xl border-white/10"
+          )}
+        >
           <div className="flex items-center justify-center gap-2 mb-2">
             <Sparkles className="h-4 w-4 text-yellow-400" />
-            <span className="text-xs text-muted-foreground uppercase tracking-wider">Complet</span>
+            <span className="text-xs text-muted-foreground uppercase tracking-wider">
+              Complet
+            </span>
           </div>
-          <span className="text-2xl font-bold text-yellow-400">{stats.percentage}%</span>
+          <span className="text-2xl font-bold text-yellow-400">
+            {stats.percentage}%
+          </span>
         </motion.div>
 
-        <motion.div variants={staggerItemVariants} className="card p-4 text-center">
+        <motion.div
+          variants={staggerItemVariants}
+          className={cn(
+            "p-4 text-center rounded-xl border",
+            "bg-slate-900/40 backdrop-blur-xl border-white/10"
+          )}
+        >
           <div className="flex items-center justify-center gap-2 mb-2">
             <Clock className="h-4 w-4 text-blue-400" />
-            <span className="text-xs text-muted-foreground uppercase tracking-wider">Durée</span>
+            <span className="text-xs text-muted-foreground uppercase tracking-wider">
+              Durée
+            </span>
           </div>
-          <span className="text-2xl font-bold text-blue-400">{formatTime(syncedDuration)}</span>
+          <span className="text-2xl font-bold text-blue-400">
+            {formatTime(syncedDuration)}
+          </span>
         </motion.div>
       </motion.div>
 
-      {/* Boutons d'export */}
-      <div className="card">
-        <div className="card-header">
-          <div>
-            <h3 className="card-title text-base">Télécharger</h3>
-            <p className="card-subtitle text-xs">Choisis ton format d'export</p>
-          </div>
-        </div>
-        
-        <div className="card-body">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Export JSON */}
-            <button
-              onClick={() => quickExport(lyrics, 'json')}
-              disabled={stats.synced === 0}
-              className={cn(
-                "flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all duration-300",
-                "hover:border-primary hover:bg-primary/5",
-                stats.synced > 0 
-                  ? "border-white/10 bg-slate-800/30 cursor-pointer" 
-                  : "border-white/5 bg-slate-800/10 cursor-not-allowed opacity-50"
-              )}
-            >
-              <div className="w-14 h-14 rounded-full bg-blue-500/20 flex items-center justify-center">
-                <FileJson className="h-7 w-7 text-blue-400" />
-              </div>
-              <div className="text-center">
-                <h4 className="font-semibold text-foreground">JSON</h4>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Format structuré, idéal pour les développeurs
-                </p>
-              </div>
-              <Badge variant="outline" className="text-xs">
-                .json
-              </Badge>
-            </button>
-            
-            {/* Export LRC */}
-            <button
-              onClick={() => quickExport(lyrics, 'lrc')}
-              disabled={stats.synced === 0}
-              className={cn(
-                "flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all duration-300",
-                "hover:border-primary hover:bg-primary/5",
-                stats.synced > 0 
-                  ? "border-white/10 bg-slate-800/30 cursor-pointer" 
-                  : "border-white/5 bg-slate-800/10 cursor-not-allowed opacity-50"
-              )}
-            >
-              <div className="w-14 h-14 rounded-full bg-purple-500/20 flex items-center justify-center">
-                <FileText className="h-7 w-7 text-purple-400" />
-              </div>
-              <div className="text-center">
-                <h4 className="font-semibold text-foreground">LRC</h4>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Format standard, compatible avec la plupart des lecteurs
-                </p>
-              </div>
-              <Badge variant="outline" className="text-xs">
-                .lrc
-              </Badge>
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Export Panel - Réutilisation du composant */}
+      <Card
+        className={cn(
+          "relative overflow-hidden",
+          "bg-slate-900/40 backdrop-blur-xl",
+          "border border-white/10",
+          "shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
+        )}
+      >
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-foreground text-base">
+            <Download className="h-5 w-5 text-primary" />
+            Télécharger
+          </CardTitle>
+          <CardDescription className="text-xs">
+            Choisis ton format d'export
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          {/* Utilisation de ExportPanel sans la carte wrapper */}
+          <ExportPanel lyrics={lyrics} exporter={exporter} showCard={false} />
+        </CardContent>
+      </Card>
 
       {/* Navigation retour */}
       <div className="flex items-center justify-start p-4 rounded-xl border border-white/10 bg-slate-800/30">
-        <Button
-          variant="ghost"
-          onClick={onBack}
-          className="gap-2"
-        >
+        <Button variant="ghost" onClick={onBack} className="gap-2">
           <ArrowLeft className="h-4 w-4" />
           Retour à la synchronisation
         </Button>
@@ -219,4 +208,3 @@ export default function StepExport({
     </motion.div>
   );
 }
-
