@@ -188,4 +188,15 @@ body {
   .custom-scrollbar::-webkit-scrollbar-thumb {
     @apply bg-slate-600 rounded-full hover:bg-slate-500;
   }
+
+  /* Audio Waveform Animation */
+  .waveform-bar {
+    @apply w-1 bg-primary/80 rounded-full;
+    animation: waveform 1s ease-in-out infinite;
+  }
+
+  @keyframes waveform {
+    0%, 100% { height: 20%; opacity: 0.5; }
+    50% { height: 100%; opacity: 1; }
+  }
 }

@@ -107,7 +107,7 @@ const LyricsInput: React.FC<LyricsInputProps> = ({ onLoadLyrics }) => {
 
       <CardContent className="flex-1 flex flex-col gap-4">
         {/* Textarea avec compteur de lignes */}
-        <div className="relative flex-1">
+        <div className="relative flex-1 min-h-0">
           <Textarea
             id="lyrics-textarea"
             value={text}
@@ -120,7 +120,7 @@ That saved a wretch like me
 I once was lost, but now I'm found
 Was blind, but now I see"
             className={cn(
-              "min-h-[280px] h-full w-full resize-none font-mono text-sm leading-relaxed",
+              "min-h-[200px] h-full w-full resize-none font-mono text-sm leading-relaxed",
               "bg-slate-800/50 border-white/10",
               "focus:border-primary/50 focus:ring-primary/20",
               "placeholder:text-slate-500",
@@ -137,36 +137,34 @@ Was blind, but now I see"
           )}
         </div>
 
-        {/* Boutons d'action */}
-        <div className="flex flex-col gap-3">
-          <div className="flex gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="default"
-                    onClick={handleLoad}
-                    disabled={!text.trim()}
-                    className={cn(
-                      "flex-1 gap-2 h-11",
-                      "bg-gradient-to-r from-primary to-blue-500 hover:from-primary/90 hover:to-blue-500/90",
-                      "shadow-lg shadow-primary/20",
-                      "disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-                    )}
-                  >
-                    <Upload className="h-4 w-4" />
-                    {isLoaded ? "Recharger les paroles" : "Charger les paroles"}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {text.trim()
-                    ? `Charger ${countLines(text)} ligne(s) de paroles`
-                    : "Entrez d'abord des paroles"
-                  }
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+        {/* Boutons d'action - toujours visibles */}
+        <div className="flex flex-col gap-3 shrink-0 pt-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="default"
+                  onClick={handleLoad}
+                  disabled={!text.trim()}
+                  className={cn(
+                    "w-full gap-2 h-12",
+                    "bg-gradient-to-r from-primary to-blue-500 hover:from-primary/90 hover:to-blue-500/90",
+                    "shadow-lg shadow-primary/20",
+                    "disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                  )}
+                >
+                  <Upload className="h-4 w-4" />
+                  {isLoaded ? "Recharger les paroles" : "Charger les paroles"}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {text.trim()
+                  ? `Charger ${countLines(text)} ligne(s) de paroles`
+                  : "Entrez d'abord des paroles"
+                }
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
           {/* Message d'aide avec icône */}
           <div className="flex items-start gap-2 text-xs text-muted-foreground">

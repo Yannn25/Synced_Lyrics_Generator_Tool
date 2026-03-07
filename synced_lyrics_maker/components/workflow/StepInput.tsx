@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
-import { Music, FileText, ArrowRight, CheckCircle2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { FileText, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import AudioPlayer from "@/components/AudioPlayer";
@@ -21,8 +21,9 @@ interface StepInputProps {
 /**
  * StepInput - Conteneur pour l'étape 1 du workflow
  *
- * Regroupe AudioPlayer et LyricsInput l'un au-dessus de l'autre.
- * Affiche un bouton "Continuer" quand l'audio ET les lyrics sont chargés.
+ * Implémente l'effet "Focus" :
+ * - Si audio non chargé: Affiche uniquement le AudioPlayer en grand au centre.
+ * - Si audio chargé: AudioPlayer passe en haut (compact) et LyricsInput apparaît.
  */
 export default function StepInput({
   audio,
@@ -30,11 +31,8 @@ export default function StepInput({
   onContinue,
   lyricsLoaded,
 }: StepInputProps) {
-
-  // Conditions pour passer à l'étape suivante
   const audioReady = audio.isLoaded;
-  const lyricsReady = lyricsLoaded;
-  const canContinue = audioReady && lyricsReady;
+  const canContinue = audioReady && lyricsLoaded;
 
   return (
     <motion.div
@@ -43,103 +41,131 @@ export default function StepInput({
       animate="animate"
       exit="exit"
       transition={stepTransition}
-      className="flex flex-col gap-6"
+      className="flex flex-col gap-8 w-full max-w-5xl mx-auto pb-32"
     >
-      {/* Header avec indicateurs de statut */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-foreground">
-            Charger vos fichiers
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Importez un fichier audio et vos paroles pour commencer
-          </p>
-        </div>
-
-        {/* Indicateurs de statut */}
-        <div className="flex items-center gap-2">
-          <Badge
-            variant={audioReady ? "default" : "outline"}
-            className={cn(
-              "gap-1.5 transition-all duration-300",
-              audioReady && "bg-green-500/20 text-green-400 border-green-500/30"
-            )}
+      {/* Header caché si pas d'audio (focus mode) */}
+      <AnimatePresence>
+        {audioReady && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex items-center justify-between"
           >
-            {audioReady ? (
-              <CheckCircle2 className="h-3.5 w-3.5" />
-            ) : (
-              <Music className="h-3.5 w-3.5" />
-            )}
-            Audio
-          </Badge>
-          <Badge
-            variant={lyricsReady ? "default" : "outline"}
-            className={cn(
-              "gap-1.5 transition-all duration-300",
-              lyricsReady && "bg-green-500/20 text-green-400 border-green-500/30"
-            )}
-          >
-            {lyricsReady ? (
-              <CheckCircle2 className="h-3.5 w-3.5" />
-            ) : (
-              <FileText className="h-3.5 w-3.5" />
-            )}
-            Lyrics
-          </Badge>
-        </div>
-      </div>
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">
+                Charger vos fichiers
+              </h2>
+              <p className="text-muted-foreground mt-1">
+                L'audio est prêt, ajoutez maintenant les paroles.
+              </p>
+            </div>
 
-      {/* Layout vertical : AudioPlayer au-dessus, LyricsInput en-dessous */}
-      <div className="flex flex-col gap-6 w-full">
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="default"
+                className="gap-1.5 bg-green-500/20 text-green-400 border-green-500/30"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Audio
+              </Badge>
+              <Badge
+                variant={lyricsLoaded ? "default" : "outline"}
+                className={cn(
+                  "gap-1.5 transition-all duration-300",
+                  lyricsLoaded &&
+                    "bg-green-500/20 text-green-400 border-green-500/30"
+                )}
+              >
+                {lyricsLoaded ? (
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                ) : (
+                  <FileText className="h-3.5 w-3.5" />
+                )}
+                Lyrics
+              </Badge>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Main Layout Area */}
+      <div
+        className={cn(
+          "flex flex-col w-full transition-all duration-700 ease-in-out",
+          audioReady
+            ? "gap-8"
+            : "min-h-[60vh] justify-center"
+        )}
+      >
         {/* Section Audio */}
-        <div className="w-full">
-          <AudioPlayer
-            audio={audio}
-            onSyncLine={() => {}} // Non utilisé dans cette étape
-            canSync={false}
-          />
-        </div>
+        <motion.div
+          layout
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className="w-full shrink-0"
+        >
+          <AudioPlayer audio={audio} onSyncLine={() => {}} canSync={false} />
+        </motion.div>
 
-        {/* Section Lyrics */}
-        <div className="w-full">
-          <LyricsInput onLoadLyrics={onLoadLyrics} />
-        </div>
+        {/* Section Lyrics (Reveal animation) */}
+        <AnimatePresence>
+          {audioReady && (
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="w-full"
+            >
+              <LyricsInput onLoadLyrics={onLoadLyrics} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Section de progression */}
-      <motion.div
-        variants={cardVariants}
-        className={cn(
-          "flex items-center justify-between p-4 rounded-xl border transition-all duration-300",
-          canContinue
-            ? "border-green-500/30 bg-green-500/5"
-            : "border-white/10 bg-slate-800/30"
-        )}
-      >
-        <div className="flex flex-col gap-1">
-          <span className="text-sm font-medium text-foreground">
-            {canContinue ? "Prêt à synchroniser !" : "Étapes à compléter"}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            {!audioReady && !lyricsReady && "Chargez l'audio et les lyrics"}
-            {audioReady && !lyricsReady && "Il ne reste plus qu'à charger les lyrics"}
-            {!audioReady && lyricsReady && "Il ne reste plus qu'à charger l'audio"}
-            {canContinue && "Passez à l'étape de synchronisation"}
-          </span>
-        </div>
+      <AnimatePresence>
+        {audioReady && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            variants={cardVariants}
+            className={cn(
+              "flex items-center justify-between p-4 rounded-xl border transition-all duration-300 backdrop-blur-lg fixed bottom-8 left-1/2 -translate-x-1/2 z-50 shadow-2xl max-w-xl w-[calc(100%-2rem)]",
+              canContinue
+                ? "border-green-500/30 bg-green-950/40"
+                : "border-white/10 bg-slate-900/80"
+            )}
+          >
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-foreground">
+                {canContinue
+                  ? "Prêt à synchroniser !"
+                  : "En attente des paroles..."}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {!lyricsLoaded &&
+                  "Copiez vos paroles ci-dessus pour continuer"}
+                {canContinue && "Passez à l'étape suivante"}
+              </span>
+            </div>
 
-        <Button
-          onClick={onContinue}
-          disabled={!canContinue}
-          className={cn(
-            "gap-2 transition-all duration-300",
-            canContinue && "bg-green-500 hover:bg-green-600"
-          )}
-        >
-          Continuer
-          <ArrowRight className="h-4 w-4" />
-        </Button>
-      </motion.div>
+            <Button
+              onClick={onContinue}
+              disabled={!canContinue}
+              className={cn(
+                "gap-2 transition-all duration-300",
+                canContinue &&
+                  "bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-500/20"
+              )}
+            >
+              Continuer
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

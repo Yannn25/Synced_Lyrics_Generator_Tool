@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 // Layout components
 import Header from "@/components/layout/Header";
@@ -25,10 +25,7 @@ import { useWorkflow } from "@/hooks/useWorkflow";
 /**
  * Home - Page principale de l'application
  *
- * Utilise le pattern workflow en 3 étapes :
- * 1. StepInput - Chargement audio + lyrics
- * 2. StepSync - Synchronisation des lignes
- * 3. StepExport - Export des fichiers
+ * Pattern full-screen immersif.
  */
 export default function Home() {
   // ===== HOOKS =====
@@ -66,6 +63,7 @@ export default function Home() {
   // ===== DERIVED STATE =====
   const lyricsLoaded = lyrics.length > 0;
   const hasSyncedLines = lyrics.some(line => line.isSynced);
+  const isWorkflowStarted = audio.isLoaded; // Hide header/footer when started
 
   // ===== EFFECTS =====
 
@@ -149,70 +147,104 @@ export default function Home() {
 
   // ===== RENDER =====
   return (
-    <div className="app-shell">
-      <Header />
+    <div className="app-shell flex flex-col h-screen overflow-hidden">
+      {/* Header caché si workflow commencé */}
+      <AnimatePresence>
+        {!isWorkflowStarted && (
+          <motion.div
+            initial={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <Header />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Persistent Audio Element */}
       <audio ref={audio.audioRef} />
 
-      {/* Indicateur d'étapes */}
-      <StepIndicator
-        currentStep={currentStep}
-        canGoToStep={canGoToStep}
-        onStepClick={goToStep}
-      />
+      {/* Indicateur d'étapes (Toujours visible mais discret en step 1 non chargé) */}
+      <AnimatePresence>
+        {isWorkflowStarted && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <StepIndicator
+              currentStep={currentStep}
+              canGoToStep={canGoToStep}
+              onStepClick={goToStep}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Contenu principal avec transitions */}
-      <main className="mx-auto w-full max-w-4xl px-6 py-8 md:px-10 md:py-12">
+      {/* Contenu principal Full Width avec padding */}
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-16 py-6 overflow-auto flex flex-col">
         <AnimatePresence mode="wait">
-          {/* Étape 1 : Chargement Audio + Lyrics */}
           {currentStep === 1 && (
-            <StepInput
-              key="step-input"
-              audio={audio}
-              onLoadLyrics={handleLoadLyrics}
-              onContinue={goToNextStep}
-              lyricsLoaded={lyricsLoaded}
-            />
+            <motion.div key="step1" className="flex-1 h-full flex flex-col">
+               <StepInput
+                audio={audio}
+                onLoadLyrics={handleLoadLyrics}
+                onContinue={goToNextStep}
+                lyricsLoaded={lyricsLoaded}
+              />
+            </motion.div>
           )}
 
-          {/* Étape 2 : Synchronisation */}
           {currentStep === 2 && (
-            <StepSync
-              key="step-sync"
-              audio={audio}
-              lyrics={lyrics}
-              selectedLineId={selectedLineId}
-              onSelectLine={selectLine}
-              onClearTimestamp={clearTimestamp}
-              onUpdateTimestamp={onUpdateTimestamp}
-              onUpdateLineText={updateLineText}
-              onDeleteLine={deleteLine}
-              onClearList={clearList}
-              onSyncLine={handleSyncLine}
-              onContinue={goToNextStep}
-              onPreviewLyrics={handleOpenPreview}
-              onBack={goToPreviousStep}
-            />
+            <motion.div key="step2" className="flex-1 h-full flex flex-col">
+              <StepSync
+                audio={audio}
+                lyrics={lyrics}
+                selectedLineId={selectedLineId}
+                onSelectLine={selectLine}
+                onClearTimestamp={clearTimestamp}
+                onUpdateTimestamp={onUpdateTimestamp}
+                onUpdateLineText={updateLineText}
+                onDeleteLine={deleteLine}
+                onClearList={clearList}
+                onSyncLine={handleSyncLine}
+                onContinue={goToNextStep}
+                onPreviewLyrics={handleOpenPreview}
+                onBack={goToPreviousStep}
+              />
+            </motion.div>
           )}
 
-          {/* Étape 3 : Export */}
           {currentStep === 3 && (
-            <StepExport
-              key="step-export"
-              audio={audio}
-              lyrics={lyrics}
-              exporter={exporter}
-              onBack={goToPreviousStep}
-              onPreviewLyrics={handleOpenPreview}
-            />
+            <motion.div key="step3" className="flex-1 h-full flex flex-col">
+              <StepExport
+                audio={audio}
+                lyrics={lyrics}
+                exporter={exporter}
+                onBack={goToPreviousStep}
+                onPreviewLyrics={handleOpenPreview}
+              />
+            </motion.div>
           )}
         </AnimatePresence>
       </main>
 
-      <Footer />
+      {/* Footer caché si workflow commencé */}
+      <AnimatePresence>
+        {!isWorkflowStarted && (
+          <motion.div
+            initial={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            {/* Si step 1 et pas chargé, on affiche le footer en bas, sinon on le cache */}
+            <div className="mt-auto">
+               <Footer />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Modal de preview des lyrics */}
       <LyricsPreviewModal
         isOpen={showPreview}
         onClose={handleClosePreview}

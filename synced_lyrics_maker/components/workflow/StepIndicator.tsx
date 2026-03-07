@@ -44,17 +44,17 @@ export default function StepIndicator({
   };
 
   return (
-    <div className="w-full py-8 text-white relative select-none">
+    <div className="w-full py-6 text-white relative select-none px-6 md:px-12">
 
       {/* Background glow global */}
       {currentStep === 2 && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-32 bg-blue-500/10 blur-[100px] rounded-full pointer-events-none" />
       )}
 
-      <div className="relative mx-auto max-w-3xl px-4">
+      <div className="relative mx-auto max-w-2xl">
 
         {/* Track de progression (fond gris) */}
-        <div className="absolute top-[2.5rem] left-[3.5rem] right-[3.5rem] h-1.5 bg-slate-800/50 rounded-full overflow-hidden backdrop-blur-sm">
+        <div className="absolute top-[2.5rem] left-[4rem] right-[4rem] h-1.5 bg-slate-800/50 rounded-full overflow-hidden backdrop-blur-sm">
           {/* Ligne de progression animée */}
           <motion.div
             className="h-full bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500 relative"
