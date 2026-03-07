@@ -1,14 +1,15 @@
 "use client";
 
 import React from "react";
+import { motion } from "framer-motion";
 import { Music, FileText, ArrowRight, CheckCircle2 } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import AudioPlayer from "@/components/AudioPlayer";
 import LyricsInput from "@/components/LyricsInput";
 import { useAudio } from "@/hooks/useAudio";
 import { cn } from "@/lib/utils";
+import { stepVariants, stepTransition, cardVariants } from "@/lib/animations";
 
 interface StepInputProps {
   audio: ReturnType<typeof useAudio>;
@@ -20,7 +21,7 @@ interface StepInputProps {
 /**
  * StepInput - Conteneur pour l'étape 1 du workflow
  *
- * Regroupe AudioPlayer et LyricsInput dans un layout avec tabs.
+ * Regroupe AudioPlayer et LyricsInput l'un au-dessus de l'autre.
  * Affiche un bouton "Continuer" quand l'audio ET les lyrics sont chargés.
  */
 export default function StepInput({
@@ -36,7 +37,14 @@ export default function StepInput({
   const canContinue = audioReady && lyricsReady;
 
   return (
-    <div className="flex flex-col gap-6">
+    <motion.div
+      variants={stepVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={stepTransition}
+      className="flex flex-col gap-6"
+    >
       {/* Header avec indicateurs de statut */}
       <div className="flex items-center justify-between">
         <div>
@@ -81,40 +89,26 @@ export default function StepInput({
         </div>
       </div>
 
-      {/* Tabs pour AudioPlayer et LyricsInput */}
-      <Tabs defaultValue="audio" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="audio" className="gap-2">
-            <Music className="h-4 w-4" />
-            Audio
-            {audioReady && (
-              <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="lyrics" className="gap-2">
-            <FileText className="h-4 w-4" />
-            Lyrics
-            {lyricsReady && (
-              <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
-            )}
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="audio" className="mt-4">
+      {/* Layout vertical : AudioPlayer au-dessus, LyricsInput en-dessous */}
+      <div className="flex flex-col gap-6 w-full">
+        {/* Section Audio */}
+        <div className="w-full">
           <AudioPlayer
             audio={audio}
             onSyncLine={() => {}} // Non utilisé dans cette étape
             canSync={false}
           />
-        </TabsContent>
+        </div>
 
-        <TabsContent value="lyrics" className="mt-4">
+        {/* Section Lyrics */}
+        <div className="w-full">
           <LyricsInput onLoadLyrics={onLoadLyrics} />
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
 
       {/* Section de progression */}
-      <div
+      <motion.div
+        variants={cardVariants}
         className={cn(
           "flex items-center justify-between p-4 rounded-xl border transition-all duration-300",
           canContinue
@@ -145,8 +139,7 @@ export default function StepInput({
           Continuer
           <ArrowRight className="h-4 w-4" />
         </Button>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
-

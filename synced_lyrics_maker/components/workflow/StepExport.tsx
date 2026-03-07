@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { motion } from "framer-motion";
 import {
   FileJson, 
   FileText, 
@@ -17,6 +18,7 @@ import { useExport } from "@/hooks/useExport";
 import { LyricLine } from "@/types";
 import { formatTime } from "@/utils/formatTime";
 import { cn } from "@/lib/utils";
+import { stepVariants, stepTransition, cardVariants, staggerContainerVariants, staggerItemVariants } from "@/lib/animations";
 
 interface StepExportProps {
   // Audio (pour preview lyrics)
@@ -65,7 +67,14 @@ export default function StepExport({
   const syncedDuration = lastTimestamp - firstTimestamp;
 
   return (
-    <div className="flex flex-col gap-6">
+    <motion.div
+      variants={stepVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={stepTransition}
+      className="flex flex-col gap-6"
+    >
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -91,39 +100,44 @@ export default function StepExport({
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="card p-4 text-center">
+      <motion.div
+        variants={staggerContainerVariants}
+        initial="initial"
+        animate="animate"
+        className="grid grid-cols-2 md:grid-cols-4 gap-4"
+      >
+        <motion.div variants={staggerItemVariants} className="card p-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <FileText className="h-4 w-4 text-primary" />
             <span className="text-xs text-muted-foreground uppercase tracking-wider">Lignes</span>
           </div>
           <span className="text-2xl font-bold text-foreground">{stats.total}</span>
-        </div>
-        
-        <div className="card p-4 text-center">
+        </motion.div>
+
+        <motion.div variants={staggerItemVariants} className="card p-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <CheckCircle2 className="h-4 w-4 text-green-400" />
             <span className="text-xs text-muted-foreground uppercase tracking-wider">Synced</span>
           </div>
           <span className="text-2xl font-bold text-green-400">{stats.synced}</span>
-        </div>
-        
-        <div className="card p-4 text-center">
+        </motion.div>
+
+        <motion.div variants={staggerItemVariants} className="card p-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Sparkles className="h-4 w-4 text-yellow-400" />
             <span className="text-xs text-muted-foreground uppercase tracking-wider">Complet</span>
           </div>
           <span className="text-2xl font-bold text-yellow-400">{stats.percentage}%</span>
-        </div>
-        
-        <div className="card p-4 text-center">
+        </motion.div>
+
+        <motion.div variants={staggerItemVariants} className="card p-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Clock className="h-4 w-4 text-blue-400" />
             <span className="text-xs text-muted-foreground uppercase tracking-wider">Durée</span>
           </div>
           <span className="text-2xl font-bold text-blue-400">{formatTime(syncedDuration)}</span>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Boutons d'export */}
       <div className="card">
@@ -202,7 +216,7 @@ export default function StepExport({
           Retour à la synchronisation
         </Button>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

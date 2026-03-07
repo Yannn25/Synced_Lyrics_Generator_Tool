@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { motion } from "framer-motion";
 import { Music, FileText, Guitar, ArrowRight, Eye, RotateCcw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import HelpModal from "@/components/HelpModal";
 import { useAudio } from "@/hooks/useAudio";
 import { LyricLine } from "@/types";
 import { cn } from "@/lib/utils";
+import { stepVariants, stepTransition } from "@/lib/animations";
 
 // Types de modes de synchronisation
 type SyncMode = "lyrics" | "chords" | "combined";
@@ -75,7 +77,14 @@ export default function StepSync({
   const canExport = syncedCount > 0;
 
   return (
-    <div className="flex flex-col gap-6">
+    <motion.div
+      variants={stepVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={stepTransition}
+      className="flex flex-col gap-6"
+    >
       {/* Header avec progression */}
       <div className="flex items-center justify-between">
         <div>
@@ -276,7 +285,7 @@ export default function StepSync({
           </Button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
