@@ -1,10 +1,22 @@
 'use client'
 
 import React, { useEffect } from "react";
+import { X, Play, Pause, Rewind, FastForward } from "lucide-react";
 import { LyricLine } from "@/types";
 import { formatTime } from "@/utils/formatTime";
 import useLyricsSync from "@/hooks/useLyricsSync";
 import CurrentLyricDisplay from "@/components/LyricsPreview/CurrentLyricsDisplay";
+
+// Composants shadcn/ui
+import {
+    Dialog,
+    DialogContent,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
+import { cn } from "@/lib/utils";
 
 interface LyricsPreviewModalProps {
     isOpen: boolean;
@@ -21,6 +33,7 @@ interface LyricsPreviewModalProps {
 /**
  * Modal plein écran pour prévisualiser les lyrics synchronisées.
  * Simule l'affichage d'une app de streaming.
+ * Utilise Dialog de shadcn/ui avec un style immersif.
  */
 const LyricsPreviewModal: React.FC<LyricsPreviewModalProps> = ({
     isOpen,
@@ -44,142 +57,187 @@ const LyricsPreviewModal: React.FC<LyricsPreviewModalProps> = ({
         totalCount,
     } = useLyricsSync(lyrics, currentTime, isPlaying);
 
-    // Fermer avec Escape
+    // Gestion des raccourcis clavier
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape") {
-                onClose();
-            } else if (e.key === " ") {
+            if (!isOpen) return;
+
+            if (e.key === " ") {
                 e.preventDefault();
                 isPlaying ? onPause() : onPlay();
+            } else if (e.key === "ArrowLeft") {
+                e.preventDefault();
+                onSeek(Math.max(0, currentTime - 5));
+            } else if (e.key === "ArrowRight") {
+                e.preventDefault();
+                onSeek(Math.min(duration, currentTime + 5));
             }
         };
 
-        if (isOpen) {
-            document.addEventListener("keydown", handleKeyDown);
-            // Empêcher le scroll du body
-            document.body.style.overflow = "hidden";
-        }
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [isOpen, isPlaying, onPlay, onPause, onSeek, currentTime, duration]);
 
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown);
-            document.body.style.overflow = "";
-        };
-    }, [isOpen, onClose, isPlaying, onPlay, onPause]);
-
-    if (!isOpen) return null;
+    // Gestion du slider
+    const handleSliderChange = (value: number[]) => {
+        onSeek(value[0]);
+    };
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm">
-            {/* Header avec bouton fermer et stats */}
-            <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between z-10">
-                <div className="flex items-center gap-4">
-                    <span className="text-sm text-slate-400">
-                        Preview Mode
-                    </span>
-                    {hasSyncedLyrics && (
-                        <span className="text-xs bg-primary-darkest/30 text-primary-dark px-3 py-1 rounded-full">
-                            {syncedCount}/{totalCount} synced
-                        </span>
-                    )}
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+            <DialogContent
+                className={cn(
+                    "max-w-none w-screen h-screen p-0",
+                    "bg-black/95 backdrop-blur-xl border-0",
+                    "flex flex-col"
+                )}
+                showCloseButton={false}
+            >
+                {/* Titre caché pour l'accessibilité */}
+                <DialogTitle className="sr-only">Preview des lyrics</DialogTitle>
+
+                {/* Header avec bouton fermer et stats */}
+                <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between z-10">
+                    <div className="flex items-center gap-4">
+                        <Badge variant="outline" className="bg-slate-800/60 border-white/10 text-slate-300">
+                            Preview Mode
+                        </Badge>
+                        {hasSyncedLyrics && (
+                            <Badge className="bg-primary/20 text-primary border-primary/30">
+                                {syncedCount}/{totalCount} synced
+                            </Badge>
+                        )}
+                    </div>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onClose}
+                        className={cn(
+                            "w-10 h-10 p-0 rounded-full",
+                            "bg-slate-800/60 hover:bg-slate-700",
+                            "text-slate-400 hover:text-white"
+                        )}
+                    >
+                        <X className="h-5 w-5" />
+                        <span className="sr-only">Fermer</span>
+                    </Button>
                 </div>
-                <button
-                    onClick={onClose}
-                    className="w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
-                >
-                    <span className="text-xl">×</span>
-                </button>
-            </div>
 
-            {/* Zone principale des lyrics */}
-            <CurrentLyricDisplay
-                activeLine={activeLine}
-                previousLine={previousLine}
-                nextLine={nextLine}
-                progress={getLineProgress()}
-            />
-
-            {/* Contrôles audio en bas - Progress bar pleine largeur */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/90 to-transparent">
-                {/* Progress bar pleine largeur */}
-                <div className="w-full px-0">
-                    <input
-                        type="range"
-                        min={0}
-                        max={duration || 100}
-                        value={currentTime}
-                        onChange={(e) => onSeek(parseFloat(e.target.value))}
-                        className="w-full h-1.5 bg-slate-700/80 appearance-none cursor-pointer hover:h-2 transition-all
-                        [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-0 [&::-webkit-slider-thumb]:h-0
-                        hover:[&::-webkit-slider-thumb]:w-4 hover:[&::-webkit-slider-thumb]:h-4
-                        [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full
-                        [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-all"
-                        style={{
-                            background: `linear-gradient(to right, var(--color-primary-darkest) 0%, var(--color-primary-dark) ${(currentTime / (duration || 1)) * 100}%, rgba(51, 65, 85, 0.8) ${(currentTime / (duration || 1)) * 100}%)`
-                        }}
+                {/* Zone principale des lyrics */}
+                <div className="flex-1 flex items-center justify-center">
+                    <CurrentLyricDisplay
+                        activeLine={activeLine}
+                        previousLine={previousLine}
+                        nextLine={nextLine}
+                        progress={getLineProgress()}
                     />
                 </div>
 
-                <div className="px-6 py-4">
-                    <div className="max-w-3xl mx-auto space-y-4">
-                        {/* Temps et contrôles */}
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm font-mono text-slate-300 min-w-[60px]">
-                                {formatTime(currentTime)}
-                            </span>
+                {/* Contrôles audio en bas */}
+                <div className="bg-gradient-to-t from-black via-black/90 to-transparent">
+                    {/* Progress bar pleine largeur */}
+                    <div className="px-4">
+                        <Slider
+                            value={[currentTime]}
+                            min={0}
+                            max={duration || 100}
+                            step={0.01}
+                            onValueChange={handleSliderChange}
+                            className="cursor-pointer"
+                        />
+                    </div>
 
-                            {/* Boutons de contrôle centrés */}
-                            <div className="flex items-center gap-4">
-                                {/* Reculer 5s */}
-                                <button
-                                    onClick={() => onSeek(Math.max(0, currentTime - 5))}
-                                    className="w-10 h-10 rounded-full bg-slate-800/80 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-all hover:scale-105"
-                                    title="-5s"
-                                >
-                                    <span className="text-xs font-bold">-5</span>
-                                </button>
+                    <div className="px-6 py-4">
+                        <div className="max-w-3xl mx-auto space-y-4">
+                            {/* Temps et contrôles */}
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-mono text-slate-300 min-w-[60px]">
+                                    {formatTime(currentTime)}
+                                </span>
 
-                                {/* Play/Pause */}
-                                <button
-                                    onClick={isPlaying ? onPause : onPlay}
-                                    className="w-14 h-14 rounded-full bg-gradient-to-r from-primary-darkest to-primary-dark hover:from-primary-dark hover:to-primary flex items-center justify-center text-white transition-all shadow-lg shadow-primary-darkest/40 hover:scale-105"
-                                >
-                                    {isPlaying ? (
-                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                                        </svg>
-                                    ) : (
-                                        <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M8 5v14l11-7z" />
-                                        </svg>
-                                    )}
-                                </button>
+                                {/* Boutons de contrôle centrés */}
+                                <div className="flex items-center gap-3">
+                                    {/* Reculer 5s */}
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => onSeek(Math.max(0, currentTime - 5))}
+                                        className={cn(
+                                            "w-10 h-10 p-0 rounded-full",
+                                            "bg-slate-800/80 hover:bg-slate-700",
+                                            "text-slate-300 hover:text-white",
+                                            "transition-all hover:scale-105"
+                                        )}
+                                    >
+                                        <Rewind className="h-4 w-4" />
+                                    </Button>
 
-                                {/* Avancer 5s */}
-                                <button
-                                    onClick={() => onSeek(Math.min(duration, currentTime + 5))}
-                                    className="w-10 h-10 rounded-full bg-slate-800/80 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-all hover:scale-105"
-                                    title="+5s"
-                                >
-                                    <span className="text-xs font-bold">+5</span>
-                                </button>
+                                    {/* Play/Pause */}
+                                    <Button
+                                        variant="default"
+                                        size="lg"
+                                        onClick={isPlaying ? onPause : onPlay}
+                                        className={cn(
+                                            "w-14 h-14 p-0 rounded-full",
+                                            "bg-gradient-to-r from-primary to-blue-500 hover:from-primary/90 hover:to-blue-500/90",
+                                            "shadow-lg shadow-primary/40",
+                                            "transition-all hover:scale-105"
+                                        )}
+                                    >
+                                        {isPlaying ? (
+                                            <Pause className="h-6 w-6" />
+                                        ) : (
+                                            <Play className="h-6 w-6 ml-0.5" />
+                                        )}
+                                    </Button>
+
+                                    {/* Avancer 5s */}
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => onSeek(Math.min(duration, currentTime + 5))}
+                                        className={cn(
+                                            "w-10 h-10 p-0 rounded-full",
+                                            "bg-slate-800/80 hover:bg-slate-700",
+                                            "text-slate-300 hover:text-white",
+                                            "transition-all hover:scale-105"
+                                        )}
+                                    >
+                                        <FastForward className="h-4 w-4" />
+                                    </Button>
+                                </div>
+
+                                <span className="text-sm font-mono text-slate-300 min-w-[60px] text-right">
+                                    {formatTime(duration)}
+                                </span>
                             </div>
 
-                            <span className="text-sm font-mono text-slate-300 min-w-[60px] text-right">
-                                {formatTime(duration)}
-                            </span>
+                            {/* Hint des raccourcis */}
+                            <div className="flex items-center justify-center gap-4 text-xs text-slate-500">
+                                <span>
+                                    <kbd className="px-1.5 py-0.5 bg-slate-800 rounded text-[10px] border border-white/10">
+                                        Espace
+                                    </kbd>
+                                    {" "}play/pause
+                                </span>
+                                <span>
+                                    <kbd className="px-1.5 py-0.5 bg-slate-800 rounded text-[10px] border border-white/10">
+                                        ← →
+                                    </kbd>
+                                    {" "}±5s
+                                </span>
+                                <span>
+                                    <kbd className="px-1.5 py-0.5 bg-slate-800 rounded text-[10px] border border-white/10">
+                                        Esc
+                                    </kbd>
+                                    {" "}fermer
+                                </span>
+                            </div>
                         </div>
-
-                        {/* Hint */}
-                        <p className="text-center text-xs text-slate-500">
-                            <kbd className="kbd text-[10px] px-2 py-0.5">Espace</kbd> play/pause
-                            <span className="mx-2">·</span>
-                            <kbd className="kbd text-[10px] px-2 py-0.5">Esc</kbd> fermer
-                        </p>
                     </div>
                 </div>
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 };
 
