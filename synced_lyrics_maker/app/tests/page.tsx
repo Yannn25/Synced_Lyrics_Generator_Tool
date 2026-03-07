@@ -183,7 +183,7 @@ function TestUseLyrics() {
         log(`✅ ${sampleLyricsText.split('\n').length} lignes chargées`);
     };
 
-    const testSelectLine = (lineId: string | null) => {
+    const testSelectLine = (lineId: number | null) => {
         log(`👆 selectLine("${lineId}")`);
         selectLine(lineId);
     };
@@ -303,10 +303,10 @@ function TestUseExport() {
 
     // Données de test avec timestamps
     const testLyrics = [
-        { id: '1', text: 'Première ligne', timestamp: 0.5, isSynced: true },
-        { id: '2', text: 'Deuxième ligne', timestamp: 3.2, isSynced: true },
-        { id: '3', text: 'Ligne non synchronisée', timestamp: null, isSynced: false },
-        { id: '4', text: 'Dernière ligne synced', timestamp: 8.7, isSynced: true },
+        { id: 1, text: 'Première ligne', timestamp: 0.5, isSynced: true, isEditing: false },
+        { id: 2, text: 'Deuxième ligne', timestamp: 3.2, isSynced: true, isEditing: false },
+        { id: 3, text: 'Ligne non synchronisée', timestamp: null, isSynced: false, isEditing: false },
+        { id: 4, text: 'Dernière ligne synced', timestamp: 8.7, isSynced: true, isEditing: false },
     ];
 
     const log = (message: string) => {
@@ -361,7 +361,7 @@ function TestUseExport() {
     const testEmptyExport = () => {
         try {
             log('🧪 Test export avec 0 lignes synced...');
-            quickExport([{ id: '1', text: 'test', timestamp: null, isSynced: false }], 'lrc');
+            quickExport([{ id: 1, text: 'test', timestamp: null, isSynced: false, isEditing: false }], 'lrc');
         } catch (error) {
             log(`✅ Erreur attendue: ${error}`);
         }
