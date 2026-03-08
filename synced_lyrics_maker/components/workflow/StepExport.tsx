@@ -22,6 +22,7 @@ import { stepVariants, stepTransition, staggerContainerVariants, staggerItemVari
 
 // Composant réutilisable
 import ExportPanel from "@/components/ExportPanel";
+import MiniAudioControls from "@/components/MiniAudioControls";
 
 interface StepExportProps {
   audio: ReturnType<typeof useAudio>;
@@ -197,6 +198,13 @@ export default function StepExport({
           <ExportPanel lyrics={lyrics} exporter={exporter} showCard={false} />
         </CardContent>
       </Card>
+
+      {/*
+      <Card>
+        <MiniAudioControls currentTime={} duration={} isPlaying={} onPlay={} onPause={} onSeek={}>
+
+        </MiniAudioControls>
+      </Card> */}
 
       {/* Navigation retour */}
       <div className="flex items-center justify-start p-4 rounded-xl border border-white/10 bg-slate-800/30">
