@@ -29,13 +29,13 @@ const CurrentLyricDisplay: React.FC<CurrentLyricDisplayProps> = ({
                         <p className="text-2xl md:text-4xl lg:text-5xl font-bold text-white leading-relaxed tracking-wide">
                             {activeLine.text}
                         </p>
-                        {/* Barre de progression sous la lyric */}
+                        {/* Barre de progression sous la lyric
                         <div className="mt-6 mx-auto w-48 h-0.5 bg-slate-700/50 rounded-full overflow-hidden">
                             <div
                                 className="h-full bg-gradient-to-r from-primary-darkest to-primary-dark transition-all duration-100 ease-linear"
                                 style={{ width: `${progress}%` }}
                             />
-                        </div>
+                        </div>*/}
                     </>
                 ) : (
                     <p className="text-2xl md:text-4xl lg:text-5xl font-medium text-slate-600/80">
