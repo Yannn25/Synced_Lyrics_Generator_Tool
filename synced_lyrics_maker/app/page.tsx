@@ -142,15 +142,38 @@ export default function Home() {
         handleSyncLine();
       }
     };
+    const handleSpaceBar = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+
+      // Ignorer si on est dans un input/textarea
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      // Espace = play/pause audio
+      if (event.code === 'Space') {
+        event.preventDefault();
+        if (audio.isPlaying) {
+          audio.pause();
+        } else {
+          audio.play();
+        }
+      }
+    };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleSpaceBar);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keydown', handleSpaceBar);
+    };
+
   }, [handleSyncLine, currentStep]);
 
   // ===== RENDER =====
   return (
     <div className="app-shell">
-      <Header />
+      {/* <Header /> */}
 
       {/* Persistent Audio Element */}
       <audio ref={audio.audioRef} />

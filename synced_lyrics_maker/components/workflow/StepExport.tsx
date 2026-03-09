@@ -10,15 +10,27 @@ import {
   ArrowLeft,
   Sparkles,
   Download,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
 import { useAudio } from "@/hooks/useAudio";
 import { useExport } from "@/hooks/useExport";
 import { LyricLine } from "@/types";
 import { formatTime } from "@/utils/formatTime";
 import { cn } from "@/lib/utils";
-import { stepVariants, stepTransition, staggerContainerVariants, staggerItemVariants } from "@/lib/animations";
+import {
+  stepVariants,
+  stepTransition,
+  staggerContainerVariants,
+  staggerItemVariants,
+} from "@/lib/animations";
 
 // Composant réutilisable
 import ExportPanel from "@/components/ExportPanel";
@@ -48,7 +60,9 @@ export default function StepExport({
   const stats = exporter.getExportStats(lyrics);
 
   // Calcul de la durée totale synced
-  const syncedLyrics = lyrics.filter((l) => l.isSynced && l.timestamp !== null);
+  const syncedLyrics = lyrics.filter(
+    (l) => l.isSynced && l.timestamp !== null
+  );
   const firstTimestamp =
     syncedLyrics.length > 0
       ? Math.min(...syncedLyrics.map((l) => l.timestamp!))
@@ -207,10 +221,19 @@ export default function StepExport({
       </Card> */}
 
       {/* Navigation retour */}
-      <div className="flex items-center justify-start p-4 rounded-xl border border-white/10 bg-slate-800/30">
+      <div className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-slate-800/30">
         <Button variant="ghost" onClick={onBack} className="gap-2">
           <ArrowLeft className="h-4 w-4" />
           Retour à la synchronisation
+        </Button>
+
+        <Button
+          variant="ghost"
+          onClick={() => window.location.reload()}
+          className="gap-2 text-muted-foreground hover:text-destructive"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Nouveau Chant
         </Button>
       </div>
     </motion.div>

@@ -44,7 +44,7 @@ export default function StepIndicator({
   };
 
   return (
-    <div className="w-full py-8 text-white relative select-none">
+    <div className="w-full py-8 text-white relative select-none flex flex-col items-center justify-start gap-6 py-8 px-48">
 
       {/* Background glow global */}
       {currentStep === 2 && (
