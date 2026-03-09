@@ -186,7 +186,7 @@ export default function Home() {
       />
 
       {/* Contenu principal avec transitions */}
-      <main className="mx-auto w-full max-w-4xl px-6 py-8 md:px-10 md:py-12">
+      <main className="mx-auto w-full max-w-4xl pt-8">
         <AnimatePresence mode="wait">
           {/* Étape 1 : Chargement Audio + Lyrics */}
           {currentStep === 1 && (
