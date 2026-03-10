@@ -48,7 +48,15 @@ export default function Home() {
 
   const {
     chords,
+    selectedChordId,
     loadChords,
+    selectChord,
+    syncAndAdvance: syncChordAndAdvance,
+    clearTimestamp: clearChordTimestamp,
+    onUpdateTimestamp: onUpdateChordTimestamp,
+    updateChordSymbols,
+    deleteChord,
+    clearList: clearChordList,
   } = useChords();
 
   const audio = useAudio();
@@ -125,6 +133,17 @@ export default function Home() {
   const handleLoadChords = useCallback((text: string) => {
     loadChords(text);
   }, [loadChords]);
+
+  /**
+   * Synchronise la ligne d'accords sélectionnée avec le timestamp actuel
+   */
+  const handleSyncChord = useCallback(() => {
+    if (!audio.isLoaded) return;
+    if (!selectedChordId) return;
+
+    const currentTimestamp = audio.getCurrentTimestamp();
+    syncChordAndAdvance(selectedChordId, currentTimestamp);
+  }, [selectedChordId, audio, syncChordAndAdvance]);
 
   /**
    * Ouvre la modal de preview des lyrics
@@ -228,7 +247,16 @@ export default function Home() {
               onUpdateLineText={updateLineText}
               onDeleteLine={deleteLine}
               onClearList={clearList}
+              chords={chords}
+              selectedChordId={selectedChordId}
+              onSelectChord={selectChord}
+              onClearChordTimestamp={clearChordTimestamp}
+              onUpdateChordTimestamp={onUpdateChordTimestamp}
+              onUpdateChordText={updateChordSymbols}
+              onDeleteChord={deleteChord}
+              onClearChordList={clearChordList}
               onSyncLine={handleSyncLine}
+              onSyncChord={handleSyncChord}
               onContinue={goToNextStep}
               onPreviewLyrics={handleOpenPreview}
               onBack={goToPreviousStep}

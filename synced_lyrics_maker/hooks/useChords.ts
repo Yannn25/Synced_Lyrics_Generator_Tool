@@ -26,6 +26,13 @@ export function useChords() {
     ));
   }, [engine.setItems]);
 
+  // Modifier les accords d'une ligne directement avec des ChordSymbol[]
+  const updateChordSymbols = useCallback((chordId: number, newChords: ChordSymbol[]) => {
+    engine.setItems(prev => prev.map(chord =>
+      chord.id === chordId ? { ...chord, chords: newChords } : chord
+    ));
+  }, [engine.setItems]);
+
   // Supprimer une ligne d'accords
   const deleteChord = useCallback((chordId: number) => {
     engine.setItems(prev => prev.filter(chord => chord.id !== chordId));
@@ -52,6 +59,7 @@ export function useChords() {
     syncAndAdvance: engine.syncAndAdvance,
     clearList: engine.clearAll,
     updateChordText,
+    updateChordSymbols,
     deleteChord,
     linkToLyric,
     getSyncStats: engine.getSyncStats,

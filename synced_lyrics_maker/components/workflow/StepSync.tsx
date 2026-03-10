@@ -4,18 +4,17 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Music, FileText, Guitar, ArrowRight, Eye, RotateCcw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import LyricsList from "@/components/LyricsList";
+import ChordsList from "@/components/ChordsList";
 import MiniAudioControls from "@/components/MiniAudioControls";
 import HelpModal from "@/components/HelpModal";
 import { useAudio } from "@/hooks/useAudio";
-import { LyricLine } from "@/types";
+import { LyricLine, ChordLine, ChordNotation, ChordSymbol, ViewMode } from "@/types";
 import { cn } from "@/lib/utils";
 import { stepVariants, stepTransition } from "@/lib/animations";
-
-// Types de modes de synchronisation
-type SyncMode = "lyrics" | "chords" | "combined";
 
 interface StepSyncProps {
   // Audio
@@ -31,8 +30,19 @@ interface StepSyncProps {
   onDeleteLine: (lineId: number) => void;
   onClearList: () => void;
 
-  // Sync action
+  // Chords (optionnel)
+  chords?: ChordLine[];
+  selectedChordId?: number | null;
+  onSelectChord?: (chordId: number) => void;
+  onClearChordTimestamp?: (chordId: number) => void;
+  onUpdateChordTimestamp?: (chordId: number, timestamp: number | null) => void;
+  onUpdateChordText?: (chordId: number, newChords: ChordSymbol[]) => void;
+  onDeleteChord?: (chordId: number) => void;
+  onClearChordList?: () => void;
+
+  // Sync actions
   onSyncLine: () => void;
+  onSyncChord?: () => void;
 
   // Navigation
   onContinue: () => void;
@@ -61,19 +71,39 @@ export default function StepSync({
   onUpdateLineText,
   onDeleteLine,
   onClearList,
+  chords = [],
+  selectedChordId = null,
+  onSelectChord,
+  onClearChordTimestamp,
+  onUpdateChordTimestamp,
+  onUpdateChordText,
+  onDeleteChord,
+  onClearChordList,
   onSyncLine,
+  onSyncChord,
   onContinue,
   onPreviewLyrics,
   onBack,
 }: StepSyncProps) {
 
-  // Mode de synchronisation actuel
-  const [syncMode, setSyncMode] = useState<SyncMode>("lyrics");
+  // Mode de vue actuel
+  const [viewMode, setViewMode] = useState<ViewMode>("lyrics");
 
-  // Calculer le nombre de lignes synchronisées
+  // Notation des accords
+  const [notation, setNotation] = useState<ChordNotation>("english");
+
+  // Y a-t-il des accords chargés ?
+  const chordsList = chords ?? [];
+  const hasChords = chordsList.length > 0;
+
+  // Stats lyrics
   const syncedCount = lyrics.filter(line => line.isSynced).length;
   const totalCount = lyrics.length;
   const progressPercent = totalCount > 0 ? Math.round((syncedCount / totalCount) * 100) : 0;
+
+  // Stats chords
+  const chordsSyncedCount = chordsList.filter(c => c.isSynced).length;
+
   const canExport = syncedCount > 0;
 
   return (
@@ -137,27 +167,45 @@ export default function StepSync({
       />
 
       {/* Toggle mode de synchronisation */}
-      <Tabs value={syncMode} onValueChange={(value) => setSyncMode(value as SyncMode)} className="w-full">
+      <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)} className="w-full">
         <div className="flex items-center justify-between gap-4">
           <TabsList className="grid grid-cols-3 w-fit">
             <TabsTrigger value="lyrics" className="gap-1.5 px-4">
               <FileText className="h-4 w-4" />
               Lyrics
             </TabsTrigger>
-            <TabsTrigger value="chords" className="gap-1.5 px-4" disabled>
+            <TabsTrigger value="chords" className="gap-1.5 px-4" disabled={!hasChords}>
               <Guitar className="h-4 w-4" />
               Accords
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">Soon</Badge>
+              {!hasChords && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">Vide</Badge>
+              )}
             </TabsTrigger>
-            <TabsTrigger value="combined" className="gap-1.5 px-4" disabled>
+            <TabsTrigger value="both" className="gap-1.5 px-4" disabled={!hasChords}>
               <Music className="h-4 w-4" />
               Combiné
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">Soon</Badge>
+              {!hasChords && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">Vide</Badge>
+              )}
             </TabsTrigger>
           </TabsList>
 
-          {/* Actions rapides */}
+          {/* Actions rapides + sélecteur de notation */}
           <div className="flex items-center gap-2">
+            {/* Sélecteur de notation (visible quand chords ou both) */}
+            {hasChords && (viewMode === "chords" || viewMode === "both") && (
+              <Select value={notation} onValueChange={(value) => setNotation(value as ChordNotation)}>
+                <SelectTrigger className="w-[160px] h-8 text-xs bg-slate-800/50 border-white/10">
+                  <SelectValue placeholder="Notation" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="english">Anglais (C D E)</SelectItem>
+                  <SelectItem value="latin">Latin (Do Ré Mi)</SelectItem>
+                  <SelectItem value="numerical">Chiffres (1 2 3)</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+
             <HelpModal />
             {lyrics.length > 0 && (
               <>
@@ -174,7 +222,10 @@ export default function StepSync({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={onClearList}
+                  onClick={() => {
+                    onClearList();
+                    onClearChordList?.();
+                  }}
                   className="gap-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10"
                 >
                   <RotateCcw className="h-4 w-4" />
@@ -211,21 +262,34 @@ export default function StepSync({
         </TabsContent>
 
         <TabsContent value="chords" className="mt-4">
-          <div className="card">
-            <div className="card-body py-12 text-center">
-              <Guitar className="h-12 w-12 mx-auto text-slate-500 mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                Synchronisation des Accords
-              </h3>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                Cette fonctionnalité sera disponible prochainement.
-                Elle permettra de synchroniser les accords en parallèle des lyrics.
-              </p>
+          {hasChords && onSelectChord && onClearChordTimestamp && onUpdateChordTimestamp && onUpdateChordText && onDeleteChord ? (
+            <ChordsList
+              chords={chordsList}
+              selectedChordId={selectedChordId ?? null}
+              onSelectChord={onSelectChord}
+              onClearTimestamp={onClearChordTimestamp}
+              onUpdateTimestamp={onUpdateChordTimestamp}
+              onUpdateChordText={onUpdateChordText}
+              onDeleteChord={onDeleteChord}
+              notation={notation}
+            />
+          ) : (
+            <div className="card">
+              <div className="card-body py-12 text-center">
+                <Guitar className="h-12 w-12 mx-auto text-slate-500 mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  Aucun accord chargé
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                  Retournez à l'étape 1, sélectionnez l'onglet "Paroles + Accords"
+                  et chargez vos accords pour les synchroniser ici.
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </TabsContent>
 
-        <TabsContent value="combined" className="mt-4">
+        <TabsContent value="both" className="mt-4">
           <div className="card">
             <div className="card-body py-12 text-center">
               <Music className="h-12 w-12 mx-auto text-slate-500 mb-4" />
@@ -233,8 +297,11 @@ export default function StepSync({
                 Vue Combinée
               </h3>
               <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                Cette fonctionnalité sera disponible prochainement.
-                Elle affichera lyrics et accords côte à côte pour une synchronisation complète.
+                La vue combinée affichera les paroles et accords alignés.
+                {hasChords
+                  ? ` ${syncedCount} lyrics et ${chordsSyncedCount} accords synchronisés.`
+                  : " Chargez d'abord des accords pour activer cette vue."
+                }
               </p>
             </div>
           </div>
