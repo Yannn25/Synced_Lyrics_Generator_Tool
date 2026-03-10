@@ -18,6 +18,7 @@ import LyricsPreviewModal from "@/components/LyricsPreview/LyricsPreviewModal";
 
 // Hooks
 import { useLyrics } from "@/hooks/useLyrics";
+import { useChords } from "@/hooks/useChords";
 import { useAudio } from "@/hooks/useAudio";
 import { useExport } from "@/hooks/useExport";
 import { useWorkflow } from "@/hooks/useWorkflow";
@@ -45,6 +46,11 @@ export default function Home() {
     deleteLine
   } = useLyrics();
 
+  const {
+    chords,
+    loadChords,
+  } = useChords();
+
   const audio = useAudio();
   const exporter = useExport();
 
@@ -65,6 +71,7 @@ export default function Home() {
 
   // ===== DERIVED STATE =====
   const lyricsLoaded = lyrics.length > 0;
+  const chordsLoaded = chords.length > 0;
   const hasSyncedLines = lyrics.some(line => line.isSynced);
 
   // ===== EFFECTS =====
@@ -111,6 +118,13 @@ export default function Home() {
   const handleLoadLyrics = useCallback((text: string) => {
     loadLyrics(text);
   }, [loadLyrics]);
+
+  /**
+   * Handler pour le chargement des accords (depuis StepInput)
+   */
+  const handleLoadChords = useCallback((text: string) => {
+    loadChords(text);
+  }, [loadChords]);
 
   /**
    * Ouvre la modal de preview des lyrics
@@ -194,8 +208,10 @@ export default function Home() {
               key="step-input"
               audio={audio}
               onLoadLyrics={handleLoadLyrics}
+              onLoadChords={handleLoadChords}
               onContinue={goToNextStep}
               lyricsLoaded={lyricsLoaded}
+              chordsLoaded={chordsLoaded}
             />
           )}
 

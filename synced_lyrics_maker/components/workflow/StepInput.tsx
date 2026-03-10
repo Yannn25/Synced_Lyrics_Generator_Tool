@@ -5,8 +5,10 @@ import { motion } from "framer-motion";
 import { Music, FileText, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AudioPlayer from "@/components/AudioPlayer";
 import LyricsInput from "@/components/LyricsInput";
+import ChordsInput from "@/components/ChordsInput";
 import { useAudio } from "@/hooks/useAudio";
 import { cn } from "@/lib/utils";
 import { stepVariants, stepTransition, cardVariants } from "@/lib/animations";
@@ -14,8 +16,10 @@ import { stepVariants, stepTransition, cardVariants } from "@/lib/animations";
 interface StepInputProps {
   audio: ReturnType<typeof useAudio>;
   onLoadLyrics: (text: string) => void;
+  onLoadChords?: (text: string) => void;
   onContinue: () => void;
   lyricsLoaded: boolean;
+  chordsLoaded?: boolean;
 }
 
 /**
@@ -27,8 +31,10 @@ interface StepInputProps {
 export default function StepInput({
   audio,
   onLoadLyrics,
+  onLoadChords,
   onContinue,
   lyricsLoaded,
+  chordsLoaded = false,
 }: StepInputProps) {
 
   // Conditions pour passer à l'étape suivante
@@ -86,10 +92,19 @@ export default function StepInput({
             )}
             Lyrics
           </Badge>
+          {chordsLoaded && (
+            <Badge
+              variant="default"
+              className="gap-1.5 transition-all duration-300 bg-purple-500/20 text-purple-400 border-purple-500/30"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Accords
+            </Badge>
+          )}
         </div>
       </div>
 
-      {/* Layout vertical : AudioPlayer au-dessus, LyricsInput en-dessous */}
+      {/* Layout vertical : AudioPlayer au-dessus, Tabs en-dessous */}
       <div className="flex flex-col gap-6 w-full">
         {/* Section Audio */}
         <div className="w-full">
@@ -100,10 +115,43 @@ export default function StepInput({
           />
         </div>
 
-        {/* Section Lyrics */}
-        <div className="w-full">
-          <LyricsInput onLoadLyrics={onLoadLyrics} />
-        </div>
+        {/* Section Lyrics / Chords avec Tabs */}
+        <Tabs defaultValue="lyrics-only" className="w-full">
+          <TabsList className={cn(
+            "w-full",
+            "bg-slate-800/50 backdrop-blur-sm border border-white/10"
+          )}>
+            <TabsTrigger
+              value="lyrics-only"
+              className="flex-1 gap-1.5 data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Paroles
+            </TabsTrigger>
+            <TabsTrigger
+              value="lyrics-chords"
+              className="flex-1 gap-1.5 data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400"
+            >
+              <Music className="h-3.5 w-3.5" />
+              Paroles + Accords
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Tab : Paroles uniquement */}
+          <TabsContent value="lyrics-only">
+            <LyricsInput onLoadLyrics={onLoadLyrics} />
+          </TabsContent>
+
+          {/* Tab : Paroles + Accords */}
+          <TabsContent value="lyrics-chords">
+            <div className="flex flex-col gap-4">
+              <LyricsInput onLoadLyrics={onLoadLyrics} />
+              {onLoadChords && (
+                <ChordsInput onLoadChords={onLoadChords} />
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Section de progression */}
