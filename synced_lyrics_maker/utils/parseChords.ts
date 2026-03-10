@@ -33,18 +33,19 @@ export function parseChordSymbol(token: string): ChordSymbol {
  * Parse les accords depuis un texte brut multi-lignes
  * Chaque ligne devient une ChordLine contenant un ou plusieurs ChordSymbol
  * Les accords sont séparés par des espaces ou tabulations
+ * L'id est un number incrémental (comme parseLyrics)
  */
 export function parseChords(text: string): ChordLine[] {
   return text
     .split('\n')
     .map(line => line.trim())
     .filter(line => line.length > 0)
-    .map((line) => {
+    .map((line, index) => {
       const tokens = line.split(/\s+/).filter(t => t.length > 0);
       const chords = tokens.map(parseChordSymbol);
 
       return {
-        id: crypto.randomUUID(),
+        id: index + 1,
         timestamp: null,
         chords,
         isSynced: false,

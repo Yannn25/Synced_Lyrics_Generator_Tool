@@ -89,7 +89,7 @@ export interface ChordSymbol {
 }
 
 export interface ChordLine {
-  id: string;            // UUID
+  id: number;
   timestamp: number | null; // Temps de début de la ligne d'accords
   chords: ChordSymbol[];    // Liste des accords sur cette ligne
   lyricLineId?: string;     // Lien vers une ligne de paroles
@@ -159,12 +159,12 @@ export type ChordNotation = 'english' | 'latin' | 'numerical';
 
 export interface ChordsListProps {
   chords: ChordLine[];
-  selectedChordId: string | number | null;
-  onSelectChord: (chordId: string | number) => void;
-  onClearTimestamp: (chordId: string | number) => void;
-  onUpdateTimestamp: (chordId: string | number, timestamp: number | null) => void;
-  onUpdateChordText: (chordId: string | number, newChords: ChordSymbol[]) => void;
-  onDeleteChord: (chordId: string | number) => void;
+  selectedChordId: number | null;
+  onSelectChord: (chordId: number) => void;
+  onClearTimestamp: (chordId: number) => void;
+  onUpdateTimestamp: (chordId: number, timestamp: number | null) => void;
+  onUpdateChordText: (chordId: number, newChords: ChordSymbol[]) => void;
+  onDeleteChord: (chordId: number) => void;
   notation: ChordNotation; // Système de notation à afficher
 }
 
@@ -175,6 +175,6 @@ export interface ChordsListProps {
 export interface CombinedViewProps {
   lyrics: LyricLine[];
   chords: ChordLine[];
-  onSync: (id: string | number, time: number) => void;
+  onSync: (id: number, time: number) => void;
   notation: ChordNotation;
 }

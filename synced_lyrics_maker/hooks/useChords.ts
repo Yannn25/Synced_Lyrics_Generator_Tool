@@ -18,7 +18,7 @@ export function useChords() {
   }, [engine.loadItems]);
 
   // Modifier les accords d'une ligne (re-parsing depuis texte brut)
-  const updateChordText = useCallback((chordId: string | number, newText: string) => {
+  const updateChordText = useCallback((chordId: number, newText: string) => {
     const tokens = newText.split(/\s+/).filter(t => t.length > 0);
     const newChords: ChordSymbol[] = tokens.map(parseChordSymbol);
     engine.setItems(prev => prev.map(chord =>
@@ -27,7 +27,7 @@ export function useChords() {
   }, [engine.setItems]);
 
   // Supprimer une ligne d'accords
-  const deleteChord = useCallback((chordId: string | number) => {
+  const deleteChord = useCallback((chordId: number) => {
     engine.setItems(prev => prev.filter(chord => chord.id !== chordId));
     if (engine.selectedId === chordId) {
       engine.selectItem(null);
@@ -35,7 +35,7 @@ export function useChords() {
   }, [engine.setItems, engine.selectedId, engine.selectItem]);
 
   // Lier une ligne d'accords à une ligne de paroles
-  const linkToLyric = useCallback((chordId: string | number, lyricLineId: string | undefined) => {
+  const linkToLyric = useCallback((chordId: number, lyricLineId: string | undefined) => {
     engine.setItems(prev => prev.map(chord =>
       chord.id === chordId ? { ...chord, lyricLineId } : chord
     ));
