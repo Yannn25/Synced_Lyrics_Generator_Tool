@@ -1,96 +1,50 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
+import { useSyncEngine } from './useSyncEngine';
 import { parseLyrics as parseLyricsUtil } from "@/utils/parseLyrics";
 import { LyricLine } from "@/types";
 
 /**
  * Custom hook for managing lyrics state
+ * Uses useSyncEngine as a generic base for sync logic
  */
 
 export function useLyrics() {
-    const [lyrics, setLyrics] = useState<LyricLine[]>([]);
-    const [selectedLineId, setSelectedLineId] = useState<number | null>(null);
+  const engine = useSyncEngine<LyricLine>();
 
-    // Parse lyrics text and set state
-    const loadLyrics = useCallback((text: string) => {
-        const parsed = parseLyricsUtil(text);
-        setLyrics(parsed);
-        setSelectedLineId(null); // Reset selection when loading new lyrics
-    }, []);
+  // Fonction spécifique: parser et charger les lyrics
+  const loadLyrics = useCallback((text: string) => {
+    const parsed = parseLyricsUtil(text);
+    engine.loadItems(parsed);
+  }, [engine.loadItems]);
 
-    // Select a line in the list
-    const selectLine = useCallback( (lineId: number | null) => {
-        setSelectedLineId(lineId);
-    }, []);
+  // Fonction spécifique: modifier le texte d'une ligne
+  const updateLineText = useCallback((lineId: number, newText: string) => {
+    engine.setItems(prev => prev.map(line =>
+      line.id === lineId ? { ...line, text: newText } : line
+    ));
+  }, [engine.setItems]);
 
-    // Sync a line with timestamp from audio
-    const syncLine = useCallback( (lineId: number, timestamp: number) => {
-        setLyrics(prev => prev.map(line =>
-            (line.id === lineId ? {...line, timestamp, isSynced: true} : line)));
-    }, []);
+  // Fonction spécifique: supprimer une ligne
+  const deleteLine = useCallback((lineId: number) => {
+    engine.setItems(prev => prev.filter(line => line.id !== lineId));
+    if (engine.selectedId === lineId) {
+      engine.selectItem(null);
+    }
+  }, [engine.setItems, engine.selectedId, engine.selectItem]);
 
-
-    // Clear a timestamp for a line
-    const clearTimestamp = useCallback( (lineId: number) => {
-        setLyrics(prev => prev.map(line =>
-            (line.id === lineId ? {...line, timestamp: null, isSynced: false} : line)));
-    }, []);
-
-    // Get next unsynced line (auto-advance)
-    const getNextUnsyncedLine = useCallback((): number | null => {
-        const unsynced = lyrics.find(line => !line.isSynced);
-        return unsynced?.id ?? null;
-    }, [lyrics]);
-
-    // Auto-select next unsynced line after sync
-    const syncAndAdvance = useCallback((lineId: number, timestamp: number) => {
-        setLyrics(prev => {
-            const updated = prev.map(line =>
-                line.id === lineId ? { ...line, timestamp, isSynced: true } : line
-            );
-            // Find next unsynced
-            const nextUnsynced = updated.find(line => !line.isSynced);
-            setSelectedLineId(nextUnsynced?.id ?? null);
-            return updated;
-        });
-    }, []);
-
-    // Clear all lines contains in the lyrics list
-    const clearList = useCallback(() => {
-        setLyrics([]);
-        setSelectedLineId(null);
-    }, []);
-
-    // Edit a timestamp for a line
-    const onUpdateTimestamp = useCallback((lineId: number, timestamp: number | null) => {
-        setLyrics(prev => prev.map(line =>
-            (line.id === lineId ? {...line, timestamp, isSynced : timestamp !== null } : line)));
-    }, []);
-
-    // Update text of a lyric line
-    const updateLineText = useCallback((lineId: number, newText: string) => {
-        setLyrics( prev => prev.map(line =>
-            line.id === lineId ? {...line, text: newText} : line
-        ));
-    }, []);
-
-    // Delete a lyric line
-    const deleteLine = useCallback((lineId: number) => {
-        setLyrics(prev => prev.filter(line => line.id !== lineId));
-        setSelectedLineId(prev => prev === lineId ? null : prev);
-    }, []);
-
-    return {
-        lyrics,
-        selectedLineId,
-        loadLyrics,
-        selectLine,
-        syncLine,
-        clearTimestamp,
-        onUpdateTimestamp,
-        getNextUnsyncedLine,
-        syncAndAdvance,
-        clearList,
-        updateLineText,
-        deleteLine,
-    };
-  }
+  return {
+    lyrics: engine.items,
+    selectedLineId: engine.selectedId,
+    loadLyrics,
+    selectLine: engine.selectItem,
+    syncLine: engine.syncItem,
+    clearTimestamp: engine.clearTimestamp,
+    onUpdateTimestamp: engine.updateTimestamp,
+    getNextUnsyncedLine: engine.getNextUnsynced,
+    syncAndAdvance: engine.syncAndAdvance,
+    clearList: engine.clearAll,
+    updateLineText,
+    deleteLine,
+    getSyncStats: engine.getSyncStats,
+  };
+}

@@ -1,3 +1,7 @@
+// ═══════════════════════════════════════════════════════
+// TYPES POUR LES LYRICS (EXISTANTS)
+// ═══════════════════════════════════════════════════════
+
 // Interface for a single line of lyric
 export interface LyricLine {
   id: number;
@@ -68,4 +72,109 @@ export interface StepIndicatorProps {
     currentStep: WorkflowStep;
     canGoToStep: (step: WorkflowStep) => boolean;
     onStepClick: (step: WorkflowStep) => void;
+}
+
+// ═══════════════════════════════════════════════════════
+// TYPES POUR LES ACCORDS (MODÈLE AVANCÉ)
+// ═══════════════════════════════════════════════════════
+
+export interface ChordSymbol {
+  label: string;         // "C/E", "Gmaj7", "F#m7b5"
+  root: string;          // "C", "G#", "Bb" (notation anglaise)
+  quality: string;       // "", "m", "maj7", "7", "m7", "dim", "aug", "sus2", "sus4", "add9"
+  bass?: string;         // "E" dans C/E (slash chords)
+  extensions?: string[]; // ["9", "11", "13", "b9", "#11"]
+  alterations?: string[];// ["b5", "#5"]
+  hint?: string;         // Annotation pédagogique optionnelle
+}
+
+export interface ChordLine {
+  id: string;            // UUID
+  timestamp: number | null; // Temps de début de la ligne d'accords
+  chords: ChordSymbol[];    // Liste des accords sur cette ligne
+  lyricLineId?: string;     // Lien vers une ligne de paroles
+  section?: 'intro' | 'verse' | 'chorus' | 'bridge' | 'outro';
+  isSynced: boolean;     // Propriété pour SyncableItem
+  isEditing: boolean;    // Propriété pour SyncableItem
+}
+
+// ═══════════════════════════════════════════════════════
+// FORMAT D'EXPORT JSON (LYRICS + CHORDS)
+// ═══════════════════════════════════════════════════════
+
+export interface ExportLyricLine {
+  time: number;
+  text: string;
+}
+
+export interface ExportChordSymbol {
+  label: string;
+  root: string;
+  quality: string;
+  bass?: string;
+  extensions?: string[];
+  alterations?: string[];
+}
+
+export interface ExportChordLine {
+  time: number;
+  chords: ExportChordSymbol[];
+}
+
+export interface ExportData {
+  lyrics: ExportLyricLine[];
+  chords?: ExportChordLine[];
+  meta?: {
+    key?: string;            // Tonalité globale (ex: "Cm")
+    timeSignature?: string;  // Ex: "4/4"
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+// TYPE GÉNÉRIQUE POUR LA SYNCHRONISATION
+// ═══════════════════════════════════════════════════════
+
+// Interface commune pour lyrics ET chords (mutualisation)
+// Note: Migration vers string ID recommandée pour LyricLine aussi
+export interface SyncableItem {
+  id: string | number;
+  timestamp: number | null;
+  isSynced: boolean;
+  isEditing: boolean;
+}
+
+// ═══════════════════════════════════════════════════════
+// MODES D'AFFICHAGE
+// ═══════════════════════════════════════════════════════
+
+export type ViewMode = 'lyrics' | 'chords' | 'both';
+
+export type SyncMode = 'lyrics' | 'chords';
+
+export type ChordNotation = 'english' | 'latin' | 'numerical';
+
+// ═══════════════════════════════════════════════════════
+// PROPS DES COMPOSANTS CHORDS
+// ═══════════════════════════════════════════════════════
+
+export interface ChordsListProps {
+  chords: ChordLine[];
+  selectedChordId: string | number | null;
+  onSelectChord: (chordId: string | number) => void;
+  onClearTimestamp: (chordId: string | number) => void;
+  onUpdateTimestamp: (chordId: string | number, timestamp: number | null) => void;
+  onUpdateChordText: (chordId: string | number, newChords: ChordSymbol[]) => void;
+  onDeleteChord: (chordId: string | number) => void;
+  notation: ChordNotation; // Système de notation à afficher
+}
+
+// ═══════════════════════════════════════════════════════
+// COMBINED VIEW
+// ═══════════════════════════════════════════════════════
+
+export interface CombinedViewProps {
+  lyrics: LyricLine[];
+  chords: ChordLine[];
+  onSync: (id: string | number, time: number) => void;
+  notation: ChordNotation;
 }
