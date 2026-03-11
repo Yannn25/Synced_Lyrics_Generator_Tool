@@ -1,13 +1,12 @@
 'use client'
 
 import React from "react";
-import { FileJson, FileText, Download } from "lucide-react";
-import { LyricLine } from "@/types";
+import { FileJson, FileText, Download, Guitar } from "lucide-react";
+import { LyricLine, ChordLine } from "@/types";
 import { useExport } from "@/hooks/useExport";
 
 // Composants shadcn/ui
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -15,6 +14,8 @@ import { cn } from "@/lib/utils";
 
 interface ExportPanelProps {
   lyrics: LyricLine[];
+  chords?: ChordLine[];
+  musicalKey?: string;
   exporter: ReturnType<typeof useExport>;
   /** Mode compact (pour intégration dans StepExport) */
   compact?: boolean;
@@ -23,26 +24,32 @@ interface ExportPanelProps {
 }
 
 /**
- * ExportPanel - Panneau d'export des lyrics synchronisées
+ * ExportPanel - Panneau d'export des lyrics synchronisées (+ accords)
  *
  * Fonctionnalités :
- * - Affiche les stats (synced/total, pourcentage)
- * - Boutons d'export JSON et LRC avec icônes
+ * - Affiche les stats lyrics + chords
+ * - Export JSON → ExportData { lyrics, chords?, meta? }
+ * - Export LRC → lyrics seulement (format standard)
  * - Feedback visuel si export impossible
  */
 const ExportPanel: React.FC<ExportPanelProps> = ({
   lyrics,
+  chords = [],
+  musicalKey,
   exporter,
   compact = false,
   showCard = true
 }) => {
   const { quickExport, getExportStats } = exporter;
-  const stats = getExportStats(lyrics);
+  const stats = getExportStats(lyrics, chords.length > 0 ? chords : undefined);
   const canExport = stats.synced > 0;
 
   const handleExportJSON = () => {
     try {
-      quickExport(lyrics, 'json');
+      quickExport(lyrics, 'json', {
+        chords: chords.length > 0 ? chords : undefined,
+        musicalKey,
+      });
     } catch (error) {
       console.error('Export JSON error:', error);
     }
@@ -61,7 +68,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
       {/* Stats de progression */}
       <div className="space-y-3">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Progression</span>
+          <span className="text-muted-foreground">Lyrics</span>
           <Badge
             variant="outline"
             className={cn(
@@ -75,9 +82,33 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
           </Badge>
         </div>
         <Progress value={stats.percentage} className="h-2" />
+
+        {/* Stats chords (si présents) */}
+        {stats.hasChords && (
+          <>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground flex items-center gap-1.5">
+                <Guitar className="h-3.5 w-3.5 text-purple-400" />
+                Accords
+              </span>
+              <Badge
+                variant="outline"
+                className={cn(
+                  "gap-1",
+                  stats.chordsPercentage === 100
+                    ? "bg-green-500/10 text-green-400 border-green-500/30"
+                    : "bg-purple-500/10 text-purple-400 border-purple-500/30"
+                )}
+              >
+                {stats.syncedChords}/{stats.totalChords} ({stats.chordsPercentage}%)
+              </Badge>
+            </div>
+            <Progress value={stats.chordsPercentage} className="h-2" />
+          </>
+        )}
       </div>
 
-      {/* Boutons d'export avec icônes comme dans StepExport */}
+      {/* Boutons d'export */}
       <div className={cn(
         "grid gap-4",
         compact ? "grid-cols-2" : "grid-cols-1 md:grid-cols-2"
@@ -108,18 +139,30 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
                   <h4 className="font-semibold text-foreground">JSON</h4>
                   {!compact && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Format structuré, idéal pour les développeurs
+                      {stats.hasChords
+                        ? "Lyrics + Accords synchronisés"
+                        : "Format structuré, idéal pour les développeurs"
+                      }
                     </p>
                   )}
                 </div>
-                <Badge variant="outline" className="text-xs">
-                  .json
-                </Badge>
+                <div className="flex items-center gap-1.5">
+                  <Badge variant="outline" className="text-xs">
+                    .json
+                  </Badge>
+                  {stats.hasChords && (
+                    <Badge variant="outline" className="text-[10px] bg-purple-500/10 text-purple-400 border-purple-500/30">
+                      + accords
+                    </Badge>
+                  )}
+                </div>
               </button>
             </TooltipTrigger>
             <TooltipContent>
               {canExport
-                ? "Télécharger au format JSON"
+                ? stats.hasChords
+                  ? `Télécharger lyrics (${stats.synced}) + accords (${stats.syncedChords}) en JSON`
+                  : "Télécharger au format JSON"
                 : "Synchronise au moins une ligne"
               }
             </TooltipContent>
@@ -152,7 +195,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
                   <h4 className="font-semibold text-foreground">LRC</h4>
                   {!compact && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Format standard, compatible avec la plupart des lecteurs
+                      Lyrics uniquement, compatible lecteurs standards
                     </p>
                   )}
                 </div>
@@ -163,7 +206,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
             </TooltipTrigger>
             <TooltipContent>
               {canExport
-                ? "Télécharger au format LRC"
+                ? "Télécharger au format LRC (lyrics seulement)"
                 : "Synchronise au moins une ligne"
               }
             </TooltipContent>
@@ -204,7 +247,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
         </CardTitle>
         <CardDescription>
           {canExport
-            ? `${stats.synced} ligne(s) prête(s) à exporter`
+            ? `${stats.synced} ligne(s)${stats.hasChords ? ` + ${stats.syncedChords} accord(s)` : ''} prête(s) à exporter`
             : "Synchronise au moins une ligne pour exporter"
           }
         </CardDescription>

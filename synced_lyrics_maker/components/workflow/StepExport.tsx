@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/card";
 import { useAudio } from "@/hooks/useAudio";
 import { useExport } from "@/hooks/useExport";
-import { LyricLine } from "@/types";
+import { LyricLine, ChordLine } from "@/types";
 import { formatTime } from "@/utils/formatTime";
 import { cn } from "@/lib/utils";
 import {
@@ -39,6 +39,8 @@ import MiniAudioControls from "@/components/MiniAudioControls";
 interface StepExportProps {
   audio: ReturnType<typeof useAudio>;
   lyrics: LyricLine[];
+  chords?: ChordLine[];
+  musicalKey?: string;
   exporter: ReturnType<typeof useExport>;
   onBack: () => void;
   onPreviewLyrics: () => void;
@@ -53,6 +55,8 @@ interface StepExportProps {
 export default function StepExport({
   audio,
   lyrics,
+  chords = [],
+  musicalKey,
   exporter,
   onBack,
   onPreviewLyrics,
@@ -209,7 +213,7 @@ export default function StepExport({
 
         <CardContent>
           {/* Utilisation de ExportPanel sans la carte wrapper */}
-          <ExportPanel lyrics={lyrics} exporter={exporter} showCard={false} />
+          <ExportPanel lyrics={lyrics} chords={chords} musicalKey={musicalKey} exporter={exporter} showCard={false} />
         </CardContent>
       </Card>
 

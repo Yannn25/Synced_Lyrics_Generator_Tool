@@ -9,6 +9,7 @@ import { translateChord } from '@/utils/chordNotation';
 // Composants shadcn/ui
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 
@@ -309,18 +310,41 @@ const CombinedRowComponent: React.FC<CombinedRowComponentProps> = ({
             <div className="flex flex-wrap items-center gap-1.5">
               <Guitar className="h-3 w-3 text-purple-400/60 flex-shrink-0" />
               {chord.chords.map((c, chordIdx) => (
-                <Badge
-                  key={`chord-${chord.id}-${chordIdx}`}
-                  variant="outline"
-                  className={cn(
-                    'font-mono text-xs px-2 py-0.5',
-                    chord.isSynced
-                      ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
-                      : 'bg-slate-700/30 text-foreground/60 border-white/10',
-                  )}
-                >
-                  {translateChord(c, notation, musicalKey)}
-                </Badge>
+                c.hint ? (
+                  <TooltipProvider key={`chord-${chord.id}-${chordIdx}`}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            'font-mono text-xs px-2 py-0.5 cursor-help',
+                            chord.isSynced
+                              ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
+                              : 'bg-slate-700/30 text-foreground/60 border-white/10',
+                          )}
+                        >
+                          {translateChord(c, notation, musicalKey)}
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs">
+                        {c.hint}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
+                  <Badge
+                    key={`chord-${chord.id}-${chordIdx}`}
+                    variant="outline"
+                    className={cn(
+                      'font-mono text-xs px-2 py-0.5',
+                      chord.isSynced
+                        ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
+                        : 'bg-slate-700/30 text-foreground/60 border-white/10',
+                    )}
+                  >
+                    {translateChord(c, notation, musicalKey)}
+                  </Badge>
+                )
               ))}
               {!chord.isSynced && (
                 <Badge

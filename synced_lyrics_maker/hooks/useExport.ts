@@ -1,22 +1,28 @@
 import { useCallback } from "react";
 import { toLRC } from "@/utils/lrcSerializer";
 import { toJSON } from "@/utils/jsonSerializer";
+import { combinedToJSON } from "@/utils/chordsSerializer";
 import { generateSmartFileName } from "@/utils/detectChorus";
-import { LyricLine } from "@/types";
+import { LyricLine, ChordLine } from "@/types";
 
 /**
- * Custom hook for exporting lyrics
+ * Custom hook for exporting lyrics (and optionally chords)
  */
 
 export function useExport() {
-    // Convert an array of LyricLine objects into a string in the LRC format
+    // Convert an array of LyricLine objects into a string in the LRC format (lyrics only)
     const exportLRC = useCallback((lyrics: LyricLine[]) => {
         return toLRC(lyrics);
     }, []);
 
-    // Convert an array of LyricLine objects into a JSON string
+    // Convert an array of LyricLine objects into a JSON string (legacy, lyrics only)
     const exportJSON = useCallback((lyrics: LyricLine[]) => {
         return toJSON(lyrics);
+    }, []);
+
+    // Export combiné lyrics + chords au format ExportData JSON
+    const exportCombinedJSON = useCallback((lyrics: LyricLine[], chords: ChordLine[], key?: string) => {
+        return combinedToJSON(lyrics, chords, key);
     }, []);
 
     // Download a file from a string
@@ -39,31 +45,65 @@ export function useExport() {
         return `${baseName}_${date}.${format}`;
     }, []);
 
-    // Fonction combinée pour export rapide
-    const quickExport = useCallback((lyrics: LyricLine[], format: 'json' | 'lrc', customName?: string) => {
-        const syncedCount = lyrics.filter(l => l.isSynced).length;
-        if (syncedCount === 0) {
+    /**
+     * Export rapide — détecte automatiquement si des chords sont présents
+     * - JSON → ExportData { lyrics, chords?, meta? }
+     * - LRC  → lyrics seulement (format standard inchangé)
+     */
+    const quickExport = useCallback((
+        lyrics: LyricLine[],
+        format: 'json' | 'lrc',
+        options?: {
+            chords?: ChordLine[];
+            musicalKey?: string;
+            customName?: string;
+        }
+    ) => {
+        const syncedLyrics = lyrics.filter(l => l.isSynced).length;
+        if (syncedLyrics === 0) {
             throw new Error('Aucune ligne synchronisée à exporter');
         }
 
-        const content = format === 'json' ? exportJSON(lyrics) : exportLRC(lyrics);
-        const filename = generateFilename(format, lyrics ) ?? (customName ?? 'synced-lyrics');
+        let content: string;
+        if (format === 'lrc') {
+            // LRC = lyrics seulement (standard)
+            content = exportLRC(lyrics);
+        } else {
+            // JSON = ExportData { lyrics, chords?, meta? }
+            const chords = options?.chords ?? [];
+            content = exportCombinedJSON(lyrics, chords, options?.musicalKey);
+        }
+
+        const filename = options?.customName ?? generateFilename(format, lyrics);
         const mimeType = format === 'json' ? 'application/json' : 'text/plain';
 
         downloadFile(content, filename, mimeType);
-        return { filename, syncedCount };
-    }, [exportJSON, exportLRC, downloadFile, generateFilename]);
 
-    // Stats d'export
-    const getExportStats = useCallback((lyrics: LyricLine[]) => {
+        const syncedChords = options?.chords?.filter(c => c.isSynced).length ?? 0;
+        return { filename, syncedCount: syncedLyrics, syncedChords };
+    }, [exportLRC, exportCombinedJSON, downloadFile, generateFilename]);
+
+    // Stats d'export (lyrics + chords)
+    const getExportStats = useCallback((lyrics: LyricLine[], chords?: ChordLine[]) => {
         const total = lyrics.length;
         const synced = lyrics.filter(l => l.isSynced).length;
-        return { total, synced, percentage: Math.round((synced / total) * 100) };
+        const totalChords = chords?.length ?? 0;
+        const syncedChords = chords?.filter(c => c.isSynced).length ?? 0;
+        return {
+            total,
+            synced,
+            percentage: total > 0 ? Math.round((synced / total) * 100) : 0,
+            totalChords,
+            syncedChords,
+            chordsPercentage: totalChords > 0 ? Math.round((syncedChords / totalChords) * 100) : 0,
+            hasChords: totalChords > 0,
+        };
     }, []);
 
     return {
         exportLRC,
         exportJSON,
+        exportCombinedJSON,
         downloadFile,
         generateFilename,
         quickExport,

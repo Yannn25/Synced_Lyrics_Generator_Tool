@@ -52,6 +52,10 @@ interface StepSyncProps {
 
   // Optionnel: retour
   onBack?: () => void;
+
+  // Tonalité musicale (partagée avec StepInput)
+  musicalKey?: string;
+  onMusicalKeyChange?: (key: string) => void;
 }
 
 /**
@@ -86,6 +90,8 @@ export default function StepSync({
   onContinue,
   onPreviewLyrics,
   onBack,
+  musicalKey = "C",
+  onMusicalKeyChange,
 }: StepSyncProps) {
 
   // Mode de vue actuel
@@ -94,8 +100,8 @@ export default function StepSync({
   // Notation des accords
   const [notation, setNotation] = useState<ChordNotation>("english");
 
-  // Tonalité musicale (nécessaire pour notation Nashville/numérique)
-  const [musicalKey, setMusicalKey] = useState<string>("C");
+  // Handler local pour la tonalité (utilise la prop si fournie, sinon state local de secours)
+  const handleKeyChange = onMusicalKeyChange ?? (() => {});
 
   // Y a-t-il des accords chargés ?
   const chordsList = chords ?? [];
@@ -213,7 +219,7 @@ export default function StepSync({
 
             {/* Sélecteur de tonalité (visible uniquement en notation Nashville) */}
             {hasChords && notation === "numerical" && (viewMode === "chords" || viewMode === "both") && (
-              <Select value={musicalKey} onValueChange={setMusicalKey}>
+              <Select value={musicalKey} onValueChange={handleKeyChange}>
                 <SelectTrigger className="w-[160px] h-8 text-xs bg-slate-800/50 border-white/10">
                   <SelectValue placeholder="Tonalité" />
                 </SelectTrigger>

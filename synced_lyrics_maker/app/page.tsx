@@ -76,6 +76,7 @@ export default function Home() {
 
   // ===== LOCAL STATE =====
   const [showPreview, setShowPreview] = useState(false);
+  const [musicalKey, setMusicalKey] = useState<string>("C");
 
   // ===== DERIVED STATE =====
   const lyricsLoaded = lyrics.length > 0;
@@ -231,6 +232,8 @@ export default function Home() {
               onContinue={goToNextStep}
               lyricsLoaded={lyricsLoaded}
               chordsLoaded={chordsLoaded}
+              musicalKey={musicalKey}
+              onMusicalKeyChange={setMusicalKey}
             />
           )}
 
@@ -260,6 +263,8 @@ export default function Home() {
               onContinue={goToNextStep}
               onPreviewLyrics={handleOpenPreview}
               onBack={goToPreviousStep}
+              musicalKey={musicalKey}
+              onMusicalKeyChange={setMusicalKey}
             />
           )}
 
@@ -269,6 +274,8 @@ export default function Home() {
               key="step-export"
               audio={audio}
               lyrics={lyrics}
+              chords={chords}
+              musicalKey={musicalKey}
               exporter={exporter}
               onBack={goToPreviousStep}
               onPreviewLyrics={handleOpenPreview}

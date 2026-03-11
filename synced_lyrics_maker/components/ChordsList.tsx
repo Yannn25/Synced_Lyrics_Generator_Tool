@@ -314,20 +314,45 @@ const ChordsList: React.FC<ChordsListProps> = ({
                       ) : (
                         <div className="flex flex-wrap gap-1.5">
                           {line.chords.map((chord, chordIdx) => (
-                            <Badge
-                              key={`${line.id}-${chordIdx}`}
-                              variant="outline"
-                              className={cn(
-                                "font-mono text-xs px-2 py-0.5",
-                                isSelected
-                                  ? "bg-purple-500/15 text-purple-300 border-purple-500/40"
-                                  : line.isSynced
-                                    ? "bg-green-500/10 text-green-400 border-green-500/30"
-                                    : "bg-slate-700/30 text-foreground/80 border-white/10"
-                              )}
-                            >
-                              {translateChord(chord, notation, musicalKey)}
-                            </Badge>
+                            chord.hint ? (
+                              <TooltipProvider key={`${line.id}-${chordIdx}`}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Badge
+                                      variant="outline"
+                                      className={cn(
+                                        "font-mono text-xs px-2 py-0.5 cursor-help",
+                                        isSelected
+                                          ? "bg-purple-500/15 text-purple-300 border-purple-500/40"
+                                          : line.isSynced
+                                            ? "bg-green-500/10 text-green-400 border-green-500/30"
+                                            : "bg-slate-700/30 text-foreground/80 border-white/10"
+                                      )}
+                                    >
+                                      {translateChord(chord, notation, musicalKey)}
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="text-xs">
+                                    {chord.hint}
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ) : (
+                              <Badge
+                                key={`${line.id}-${chordIdx}`}
+                                variant="outline"
+                                className={cn(
+                                  "font-mono text-xs px-2 py-0.5",
+                                  isSelected
+                                    ? "bg-purple-500/15 text-purple-300 border-purple-500/40"
+                                    : line.isSynced
+                                      ? "bg-green-500/10 text-green-400 border-green-500/30"
+                                      : "bg-slate-700/30 text-foreground/80 border-white/10"
+                                )}
+                              >
+                                {translateChord(chord, notation, musicalKey)}
+                              </Badge>
+                            )
                           ))}
                         </div>
                       )}
