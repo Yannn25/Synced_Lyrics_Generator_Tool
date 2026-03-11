@@ -166,6 +166,7 @@ export interface ChordsListProps {
   onUpdateChordText: (chordId: number, newChords: ChordSymbol[]) => void;
   onDeleteChord: (chordId: number) => void;
   notation: ChordNotation; // Système de notation à afficher
+  musicalKey?: string;     // Tonalité (requise pour notation 'numerical')
 }
 
 // ═══════════════════════════════════════════════════════
@@ -177,4 +178,5 @@ export interface CombinedViewProps {
   chords: ChordLine[];
   onSync: (id: number, time: number) => void;
   notation: ChordNotation;
+  musicalKey?: string;     // Tonalité (requise pour notation 'numerical')
 }

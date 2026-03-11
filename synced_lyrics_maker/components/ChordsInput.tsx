@@ -246,7 +246,7 @@ const ChordsInput: React.FC<ChordsInputProps> = ({ onLoadChords }) => {
           <div className="flex items-start gap-2 text-xs text-muted-foreground">
             <Info className="h-4 w-4 shrink-0 mt-0.5 text-purple-400/60" />
             <p>
-              Astuce : Séparez les accords par des espaces. Slash chords supportés (ex: C/E, D/F#).
+              Astuce : Séparez les accords par des espaces. Accords slash supportés (ex: C/E, D/F#).
               {isLoaded && " Vous pouvez modifier les accords et recharger à tout moment."}
             </p>
           </div>

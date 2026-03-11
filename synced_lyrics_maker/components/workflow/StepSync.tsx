@@ -9,12 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import LyricsList from "@/components/LyricsList";
 import ChordsList from "@/components/ChordsList";
+import CombinedView from "@/components/CombinedView";
 import MiniAudioControls from "@/components/MiniAudioControls";
 import HelpModal from "@/components/HelpModal";
 import { useAudio } from "@/hooks/useAudio";
 import { LyricLine, ChordLine, ChordNotation, ChordSymbol, ViewMode } from "@/types";
 import { cn } from "@/lib/utils";
 import { stepVariants, stepTransition } from "@/lib/animations";
+import { KEY_OPTIONS } from "@/utils/chordNotation";
 
 interface StepSyncProps {
   // Audio
@@ -91,6 +93,9 @@ export default function StepSync({
 
   // Notation des accords
   const [notation, setNotation] = useState<ChordNotation>("english");
+
+  // Tonalité musicale (nécessaire pour notation Nashville/numérique)
+  const [musicalKey, setMusicalKey] = useState<string>("C");
 
   // Y a-t-il des accords chargés ?
   const chordsList = chords ?? [];
@@ -201,7 +206,23 @@ export default function StepSync({
                 <SelectContent>
                   <SelectItem value="english">Anglais (C D E)</SelectItem>
                   <SelectItem value="latin">Latin (Do Ré Mi)</SelectItem>
-                  <SelectItem value="numerical">Chiffres (1 2 3)</SelectItem>
+                  <SelectItem value="numerical">Nashville (1 2 3)</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+
+            {/* Sélecteur de tonalité (visible uniquement en notation Nashville) */}
+            {hasChords && notation === "numerical" && (viewMode === "chords" || viewMode === "both") && (
+              <Select value={musicalKey} onValueChange={setMusicalKey}>
+                <SelectTrigger className="w-[160px] h-8 text-xs bg-slate-800/50 border-white/10">
+                  <SelectValue placeholder="Tonalité" />
+                </SelectTrigger>
+                <SelectContent className="max-h-64">
+                  {KEY_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             )}
@@ -272,6 +293,7 @@ export default function StepSync({
               onUpdateChordText={onUpdateChordText}
               onDeleteChord={onDeleteChord}
               notation={notation}
+              musicalKey={musicalKey}
             />
           ) : (
             <div className="card">
@@ -290,21 +312,27 @@ export default function StepSync({
         </TabsContent>
 
         <TabsContent value="both" className="mt-4">
-          <div className="card">
-            <div className="card-body py-12 text-center">
-              <Music className="h-12 w-12 mx-auto text-slate-500 mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                Vue Combinée
-              </h3>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                La vue combinée affichera les paroles et accords alignés.
-                {hasChords
-                  ? ` ${syncedCount} lyrics et ${chordsSyncedCount} accords synchronisés.`
-                  : " Chargez d'abord des accords pour activer cette vue."
-                }
-              </p>
+          {hasChords ? (
+            <CombinedView
+              lyrics={lyrics}
+              chords={chordsList}
+              onSync={() => {}}
+              notation={notation}
+              musicalKey={musicalKey}
+            />
+          ) : (
+            <div className="card">
+              <div className="card-body py-12 text-center">
+                <Music className="h-12 w-12 mx-auto text-slate-500 mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  Vue Combinée
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                  Chargez d&apos;abord des accords pour activer cette vue.
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </TabsContent>
       </Tabs>
 

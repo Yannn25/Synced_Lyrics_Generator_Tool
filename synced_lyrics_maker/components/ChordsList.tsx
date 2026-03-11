@@ -5,6 +5,7 @@ import { Music, Clock, Trash2, X, Check, Pencil } from "lucide-react";
 import { ChordsListProps, ChordNotation, ChordSymbol } from "@/types";
 import { formatTime } from "@/utils/formatTime";
 import { parseChordSymbol } from "@/utils/parseChords";
+import { translateChord, NOTATION_LABELS } from "@/utils/chordNotation";
 
 // Composants shadcn/ui
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -17,33 +18,6 @@ import { cn } from "@/lib/utils";
 // Composants internes
 import ShortcutsHint from "@/components/ShortcutsHints";
 
-// ═══════════════════════════════════════════════════════
-// TRADUCTION DES NOTATIONS (inline en attendant l'étape 3.12)
-// ═══════════════════════════════════════════════════════
-
-const ENGLISH_TO_LATIN: Record<string, string> = {
-  "C": "Do", "D": "Ré", "E": "Mi", "F": "Fa", "G": "Sol", "A": "La", "B": "Si",
-};
-
-/**
- * Traduit le label d'un accord selon la notation choisie
- * - english : label original (C, Dm7, G/B...)
- * - latin : Do, Rém7, Sol/Si...
- * - numerical : fallback vers english pour l'instant (nécessite une tonalité)
- */
-function translateChordLabel(chord: ChordSymbol, notation: ChordNotation): string {
-  if (notation === 'english') return chord.label;
-
-  if (notation === 'latin') {
-    const latinRoot = ENGLISH_TO_LATIN[chord.root] ?? chord.root;
-    const latinBass = chord.bass ? ENGLISH_TO_LATIN[chord.bass] ?? chord.bass : undefined;
-    const label = `${latinRoot}${chord.quality}`;
-    return latinBass ? `${label}/${latinBass}` : label;
-  }
-
-  // numerical : fallback vers english (nécessite key, implémenté à l'étape 3.12)
-  return chord.label;
-}
 
 // ═══════════════════════════════════════════════════════
 // COMPOSANT CHORDS LIST
@@ -68,6 +42,7 @@ const ChordsList: React.FC<ChordsListProps> = ({
   onUpdateChordText,
   onDeleteChord,
   notation,
+  musicalKey,
 }) => {
   // État pour l'édition inline des accords
   const [editingChordId, setEditingChordId] = useState<number | null>(null);
@@ -194,11 +169,7 @@ const ChordsList: React.FC<ChordsListProps> = ({
   const syncPercentage = totalCount > 0 ? Math.round((syncedCount / totalCount) * 100) : 0;
 
   // Label de la notation active
-  const notationLabel: Record<ChordNotation, string> = {
-    english: 'EN',
-    latin: 'Latin',
-    numerical: '#',
-  };
+  const notationLabel = NOTATION_LABELS;
 
   return (
     <Card className={cn(
@@ -355,7 +326,7 @@ const ChordsList: React.FC<ChordsListProps> = ({
                                     : "bg-slate-700/30 text-foreground/80 border-white/10"
                               )}
                             >
-                              {translateChordLabel(chord, notation)}
+                              {translateChord(chord, notation, musicalKey)}
                             </Badge>
                           ))}
                         </div>
