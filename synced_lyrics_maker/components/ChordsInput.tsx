@@ -22,6 +22,8 @@ const VALID_CHORD_REGEX = /^[A-G][#b]?(m|maj|min|dim|aug|sus[24]|add)?[0-9]?[0-9
 
 interface ChordsInputProps {
   onLoadChords: (text: string) => void;
+  value?: string;
+  onValueChange?: (text: string) => void;
 }
 
 interface ChordValidation {
@@ -33,10 +35,13 @@ interface LineValidation {
   chords: ChordValidation[];
 }
 
-const ChordsInput: React.FC<ChordsInputProps> = ({ onLoadChords }) => {
-  const [text, setText] = useState('');
+const ChordsInput: React.FC<ChordsInputProps> = ({ onLoadChords, value, onValueChange }) => {
+  const [internalText, setInternalText] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
   const [lineCount, setLineCount] = useState(0);
+
+  const text = value ?? internalText;
+  const setText = onValueChange ?? setInternalText;
 
   // Validation en temps réel des accords
   const validation = useMemo((): LineValidation[] => {

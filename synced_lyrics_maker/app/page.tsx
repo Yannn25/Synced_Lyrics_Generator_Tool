@@ -77,6 +77,8 @@ export default function Home() {
   // ===== LOCAL STATE =====
   const [showPreview, setShowPreview] = useState(false);
   const [musicalKey, setMusicalKey] = useState<string>("C");
+  const [lyricsDraft, setLyricsDraft] = useState("");
+  const [chordsDraft, setChordsDraft] = useState("");
 
   // ===== DERIVED STATE =====
   const lyricsLoaded = lyrics.length > 0;
@@ -229,6 +231,10 @@ export default function Home() {
               audio={audio}
               onLoadLyrics={handleLoadLyrics}
               onLoadChords={handleLoadChords}
+              lyricsDraft={lyricsDraft}
+              onLyricsDraftChange={setLyricsDraft}
+              chordsDraft={chordsDraft}
+              onChordsDraftChange={setChordsDraft}
               onContinue={goToNextStep}
               lyricsLoaded={lyricsLoaded}
               chordsLoaded={chordsLoaded}

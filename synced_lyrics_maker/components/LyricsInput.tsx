@@ -13,12 +13,17 @@ import { cn } from "@/lib/utils";
 
 interface LyricsInputProps {
   onLoadLyrics: (text: string) => void;
+  value?: string;
+  onValueChange?: (text: string) => void;
 }
 
-const LyricsInput: React.FC<LyricsInputProps> = ({ onLoadLyrics }) => {
-  const [text, setText] = useState('');
+const LyricsInput: React.FC<LyricsInputProps> = ({ onLoadLyrics, value, onValueChange }) => {
+  const [internalText, setInternalText] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
   const [lineCount, setLineCount] = useState(0);
+
+  const text = value ?? internalText;
+  const setText = onValueChange ?? setInternalText;
 
   // Compte le nombre de lignes non vides
   const countLines = (content: string): number => {

@@ -1,11 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Music, FileText, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AudioPlayer from "@/components/AudioPlayer";
 import LyricsInput from "@/components/LyricsInput";
 import ChordsInput from "@/components/ChordsInput";
@@ -19,6 +19,10 @@ interface StepInputProps {
   audio: ReturnType<typeof useAudio>;
   onLoadLyrics: (text: string) => void;
   onLoadChords?: (text: string) => void;
+  lyricsDraft: string;
+  onLyricsDraftChange: (text: string) => void;
+  chordsDraft?: string;
+  onChordsDraftChange?: (text: string) => void;
   onContinue: () => void;
   lyricsLoaded: boolean;
   chordsLoaded?: boolean;
@@ -36,12 +40,17 @@ export default function StepInput({
   audio,
   onLoadLyrics,
   onLoadChords,
+  lyricsDraft,
+  onLyricsDraftChange,
+  chordsDraft = "",
+  onChordsDraftChange,
   onContinue,
   lyricsLoaded,
   chordsLoaded = false,
   musicalKey = "C",
   onMusicalKeyChange,
 }: StepInputProps) {
+  const [activeTab, setActiveTab] = useState<"lyrics" | "chords">("lyrics");
 
   // Conditions pour passer à l'étape suivante
   const audioReady = audio.isLoaded;
@@ -122,38 +131,45 @@ export default function StepInput({
         </div>
 
         {/* Section Lyrics / Chords avec Tabs */}
-        <Tabs defaultValue="lyrics-only" className="w-full">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "lyrics" | "chords")} className="w-full">
           <TabsList className={cn(
             "w-full",
             "bg-slate-800/50 backdrop-blur-sm border border-white/10"
           )}>
             <TabsTrigger
-              value="lyrics-only"
+              value="lyrics"
               className="flex-1 gap-1.5 data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
             >
               <FileText className="h-3.5 w-3.5" />
               Paroles
             </TabsTrigger>
             <TabsTrigger
-              value="lyrics-chords"
+              value="chords"
               className="flex-1 gap-1.5 data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400"
             >
               <Music className="h-3.5 w-3.5" />
-              Paroles + Accords
+              Accords
             </TabsTrigger>
           </TabsList>
 
-          {/* Tab : Paroles uniquement */}
-          <TabsContent value="lyrics-only">
-            <LyricsInput onLoadLyrics={onLoadLyrics} />
-          </TabsContent>
+          {/* Paroles: reste monté, seulement masqué */}
+          <div className={cn("mt-4", activeTab === "lyrics" ? "block" : "hidden")}>
+            <LyricsInput
+              value={lyricsDraft}
+              onValueChange={onLyricsDraftChange}
+              onLoadLyrics={onLoadLyrics}
+            />
+          </div>
 
-          {/* Tab : Paroles + Accords */}
-          <TabsContent value="lyrics-chords">
+          {/* Accords: reste monté, seulement masqué */}
+          <div className={cn("mt-4", activeTab === "chords" ? "block" : "hidden")}>
             <div className="flex flex-col gap-4">
-              <LyricsInput onLoadLyrics={onLoadLyrics} />
               {onLoadChords && (
-                <ChordsInput onLoadChords={onLoadChords} />
+                <ChordsInput
+                  value={chordsDraft}
+                  onValueChange={onChordsDraftChange}
+                  onLoadChords={onLoadChords}
+                />
               )}
 
               {/* Sélecteur de tonalité */}
@@ -186,7 +202,7 @@ export default function StepInput({
                 </div>
               )}
             </div>
-          </TabsContent>
+          </div>
         </Tabs>
       </div>
 
