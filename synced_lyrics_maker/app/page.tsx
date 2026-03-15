@@ -134,8 +134,8 @@ export default function Home() {
    * Handler pour le chargement des accords (depuis StepInput)
    */
   const handleLoadChords = useCallback((text: string) => {
-    loadChords(text);
-  }, [loadChords]);
+    loadChords(text, musicalKey);
+  }, [loadChords, musicalKey]);
 
   /**
    * Synchronise la ligne d'accords sélectionnée avec le timestamp actuel

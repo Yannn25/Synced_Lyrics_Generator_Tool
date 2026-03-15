@@ -85,7 +85,9 @@ const ChordsList: React.FC<ChordsListProps> = ({
     if (editingChordId !== null && editText.trim()) {
       // Re-parse les accords depuis le texte brut
       const tokens = editText.trim().split(/\s+/).filter((t: string) => t.length > 0);
-      const newChords: ChordSymbol[] = tokens.map((t: string) => parseChordSymbol(t));
+      const newChords: ChordSymbol[] = tokens.map((t: string) =>
+        parseChordSymbol(t, { key: musicalKey ?? "C" })
+      );
       onUpdateChordText(editingChordId, newChords);
     }
     setEditingChordId(null);

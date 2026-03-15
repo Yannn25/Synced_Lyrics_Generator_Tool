@@ -12,15 +12,15 @@ export function useChords() {
   const engine = useSyncEngine<ChordLine>();
 
   // Parser et charger les accords
-  const loadChords = useCallback((text: string) => {
-    const parsed = parseChordsUtil(text);
+  const loadChords = useCallback((text: string, key = "C") => {
+    const parsed = parseChordsUtil(text, { key });
     engine.loadItems(parsed);
   }, [engine.loadItems]);
 
   // Modifier les accords d'une ligne (re-parsing depuis texte brut)
-  const updateChordText = useCallback((chordId: number, newText: string) => {
+  const updateChordText = useCallback((chordId: number, newText: string, key = "C") => {
     const tokens = newText.split(/\s+/).filter(t => t.length > 0);
-    const newChords: ChordSymbol[] = tokens.map(parseChordSymbol);
+    const newChords: ChordSymbol[] = tokens.map((token) => parseChordSymbol(token, { key }));
     engine.setItems(prev => prev.map(chord =>
       chord.id === chordId ? { ...chord, chords: newChords } : chord
     ));

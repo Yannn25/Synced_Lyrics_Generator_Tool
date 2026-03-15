@@ -12,13 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 // Utils
-import { parseChordSymbol } from "@/utils/parseChords";
-
-/**
- * Regex simplifiée pour valider qu'un token est un accord reconnu
- * Accepte : A-G avec # ou b, suivi de quality optionnelle, slash chord optionnel
- */
-const VALID_CHORD_REGEX = /^[A-G][#b]?(m|maj|min|dim|aug|sus[24]|add)?[0-9]?[0-9]?(\/[A-G][#b]?)?$/;
+import { isChordTokenSupported } from "@/utils/parseChords";
 
 interface ChordsInputProps {
   onLoadChords: (text: string) => void;
@@ -55,7 +49,7 @@ const ChordsInput: React.FC<ChordsInputProps> = ({ onLoadChords, value, onValueC
         return {
           chords: tokens.map(token => ({
             token,
-            isValid: VALID_CHORD_REGEX.test(token),
+            isValid: isChordTokenSupported(token),
           })),
         };
       });
