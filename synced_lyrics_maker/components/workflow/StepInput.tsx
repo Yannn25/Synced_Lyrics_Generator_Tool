@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Music, FileText, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Music, AudioLines, FileText, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -164,42 +164,42 @@ export default function StepInput({
           {/* Accords: reste monté, seulement masqué */}
           <div className={cn("mt-4", activeTab === "chords" ? "block" : "hidden")}>
             <div className="flex flex-col gap-4">
+              {/* Sélecteur de tonalité */}
+              {onMusicalKeyChange && (
+                  <div className={cn(
+                      "flex items-center gap-3 p-3 rounded-lg border",
+                      "bg-slate-800/30 border-white/10"
+                  )}>
+                    <AudioLines className="h-4 w-4 text-purple-400 flex-shrink-0" />
+                    <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                    <span className="text-sm font-medium text-foreground">
+                      Tonalité du morceau
+                    </span>
+                      <span className="text-[11px] text-muted-foreground">
+                      Utilisé pour la notation Nashville (chiffrée)
+                    </span>
+                    </div>
+                    <Select value={musicalKey} onValueChange={onMusicalKeyChange}>
+                      <SelectTrigger className="w-[180px] h-8 text-xs bg-slate-900/50 border-white/10">
+                        <SelectValue placeholder="Tonalité" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-64">
+                        {KEY_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label} ({opt.english})
+                            </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+              )}
+
               {onLoadChords && (
                 <ChordsInput
                   value={chordsDraft}
                   onValueChange={onChordsDraftChange}
                   onLoadChords={onLoadChords}
                 />
-              )}
-
-              {/* Sélecteur de tonalité */}
-              {onMusicalKeyChange && (
-                <div className={cn(
-                  "flex items-center gap-3 p-3 rounded-lg border",
-                  "bg-slate-800/30 border-white/10"
-                )}>
-                  <Music className="h-4 w-4 text-purple-400 flex-shrink-0" />
-                  <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                    <span className="text-sm font-medium text-foreground">
-                      Tonalité du morceau
-                    </span>
-                    <span className="text-[11px] text-muted-foreground">
-                      Utilisé pour la notation Nashville (chiffrée)
-                    </span>
-                  </div>
-                  <Select value={musicalKey} onValueChange={onMusicalKeyChange}>
-                    <SelectTrigger className="w-[180px] h-8 text-xs bg-slate-900/50 border-white/10">
-                      <SelectValue placeholder="Tonalité" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-64">
-                      {KEY_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label} ({opt.english})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
               )}
             </div>
           </div>
