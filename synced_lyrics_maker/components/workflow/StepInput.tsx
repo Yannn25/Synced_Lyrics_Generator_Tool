@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useMemo } from "react";
-import { motion } from "framer-motion";
-import { Music, FileText, CheckCircle2, Zap, Wand2 } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Music, FileText, CheckCircle2, Zap, Wand2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -52,6 +52,8 @@ export default function StepInput({
 	onSongDataChange,
 	onContinue,
 }: StepInputProps) {
+	const [isDragging, setIsDragging] = useState(false);
+
 	// 1. Détection des accords présents dans le texte
 	const detectedChords = useMemo(() => {
 		if (!songData?.content) return [];
@@ -115,6 +117,31 @@ export default function StepInput({
 	const isContentReady = songData?.content?.trim().length > 0;
 	const canContinue = audio.isLoaded && isContentReady;
 
+	// Gestion du Drag & Drop global sur l'étape
+	const handleDragOver = (e: React.DragEvent) => {
+		e.preventDefault();
+		if (!audio.isLoaded) {
+			setIsDragging(true);
+		}
+	};
+
+	const handleDragLeave = (e: React.DragEvent) => {
+		e.preventDefault();
+		// Évite le clignotement si on passe sur un enfant
+		if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+		setIsDragging(false);
+	};
+
+	const handleDrop = (e: React.DragEvent) => {
+		e.preventDefault();
+		setIsDragging(false);
+		
+		const file = e.dataTransfer.files?.[0];
+		if (file && file.type.startsWith('audio/') && !audio.isLoaded) {
+			audio.loadAudio(file);
+		}
+	};
+
 	return (
 		<motion.div
 			variants={stepVariants}
@@ -122,8 +149,35 @@ export default function StepInput({
 			animate="animate"
 			exit="exit"
 			transition={stepTransition}
-			className="flex flex-col gap-6 h-full pb-8"
+			className="flex flex-col gap-6 h-full pb-8 relative"
+			onDragOver={handleDragOver}
+			onDragLeave={handleDragLeave}
+			onDrop={handleDrop}
 		>
+			{/* Overlay de Drag & Drop */}
+			<AnimatePresence>
+				{isDragging && (
+					<motion.div
+						initial={{ opacity: 0, scale: 0.95 }}
+						animate={{ opacity: 1, scale: 1 }}
+						exit={{ opacity: 0, scale: 0.95 }}
+						className="absolute inset-0 z-50 bg-background/80 backdrop-blur-md border-2 border-primary border-dashed rounded-xl flex flex-col items-center justify-center gap-6"
+					>
+						<div className="p-6 rounded-full bg-primary/10 animate-bounce">
+							<Upload className="w-12 h-12 text-primary" />
+						</div>
+						<div className="text-center space-y-2">
+							<h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-400">
+								Lâchez le fichier ici !
+							</h3>
+							<p className="text-muted-foreground">
+								Votre audio sera automatiquement chargé
+							</p>
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
@@ -157,6 +211,17 @@ export default function StepInput({
 						<FileText className="w-3 h-3 mr-1" />
 						Contenu
 					</Badge>
+				</div>
+			</div>
+
+			<div className="flex flex-col xl:flex-row gap-6">
+				{/* Audio Player Card */}
+				<div className="rounded-xl overflow-hidden glass shadow-lg">
+					<AudioPlayer
+						audio={audio}
+						onSyncLine={() => {}}
+						canSync={false}
+					/>
 				</div>
 			</div>
 
@@ -254,11 +319,11 @@ export default function StepInput({
 							id="chordpro-editor"
 							className="min-h-[500px] font-mono text-sm leading-relaxed bg-slate-950/30 border-white/10 resize-none p-6"
 							placeholder={`{Intro}
-[C]Amazing [G]Grace, how [Am]sweet the [F]sound
+									[C]Amazing [G]Grace, how [Am]sweet the [F]sound
 
-{Verse 1}
-[C]Amazing [G]Grace, how [Am]sweet the [F]sound
-That [C]saved a [G]wretch like [C]me`}
+									{Verse 1}
+									[C]Amazing [G]Grace, how [Am]sweet the [F]sound
+									That [C]saved a [G]wretch like [C]me`}
 							value={songData.content}
 							onChange={(e) => updateField("content", e.target.value)}
 						/>
@@ -312,22 +377,13 @@ That [C]saved a [G]wretch like [C]me`}
 
 				{/* RIGHT COLUMN: AUDIO PLAYER & INSTRUCTIONS (1/3 width) */}
 				<div className="w-full xl:w-80 flex flex-col gap-4">
-					{/* Audio Player Card */}
-					<div className="rounded-xl overflow-hidden glass shadow-lg">
-						<AudioPlayer
-							audio={audio}
-							onSyncLine={() => {}}
-							canSync={false}
-						/>
-					</div>
-
 					{/* Continue Button */}
 					<Button
 						size="lg"
 						className={cn(
 							"w-full transition-all duration-300",
 							canContinue
-								? "bg-gradient-to-r from-primary to-purple-600 hover:scale-[1.02] shadow-lg shadow-primary/20"
+								? "bg-gradient-to-r from-primary to-primary-light hover:scale-[1.02] shadow-lg shadow-primary/20"
 								: "opacity-50 cursor-not-allowed"
 						)}
 						disabled={!canContinue}

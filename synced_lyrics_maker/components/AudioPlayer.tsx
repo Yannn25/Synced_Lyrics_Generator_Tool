@@ -32,11 +32,38 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audio, onSyncLine, canSync })
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [fileName, setFileName] = useState<string>('');
+  const [isDragging, setIsDragging] = useState(false);
+
 
   // Gestion du fichier audio
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setFileName(file.name);
+      loadAudio(file);
+    }
+  };
+
+  // Gestion du Drag & Drop
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('audio/')) {
       setFileName(file.name);
       loadAudio(file);
     }
@@ -70,11 +97,15 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audio, onSyncLine, canSync })
     return (
         <Card className={cn(
             "relative overflow-hidden group transition-all duration-500",
-            "bg-slate-900/40 backdrop-blur-xl border-dashed border-2 border-white/10 hover:border-primary/50",
+            "bg-slate-900/40 backdrop-blur-xl border-dashed border-2",
+            isDragging ? "border-primary bg-primary/10 shadow-[0_0_60px_-15px_rgba(14,165,233,0.5)] scale-[1.02]" : "border-white/10 hover:border-primary/50",
             "min-h-[300px] flex items-center justify-center cursor-pointer",
             "shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)] hover:shadow-[0_0_60px_-15px_rgba(14,165,233,0.3)]"
         )}
               onClick={handleUploadClick}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
         >
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
@@ -94,11 +125,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audio, onSyncLine, canSync })
 
             <div className="space-y-2">
               <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-                Déposez votre fichier audio
+                {isDragging ? "Lâchez pour uploader !" : "Déposez votre fichier audio"}
               </h3>
               <p className="text-slate-400 text-sm max-w-xs mx-auto">
                 Formats supportés : MP3, WAV, OGG. <br/>
-                Cliquez pour parcourir.
+                Cliquez pour parcourir ou glissez-déposez.
               </p>
             </div>
 
