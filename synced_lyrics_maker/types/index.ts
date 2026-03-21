@@ -180,3 +180,33 @@ export interface CombinedViewProps {
   notation: ChordNotation;
   musicalKey?: string;     // Tonalité (requise pour notation 'numerical')
 }
+
+
+// ═══════════════════════════════════════════════════════
+// MODELE UNIFIE (CHORDPRO) - NOUVEAU
+// ═══════════════════════════════════════════════════════
+
+// Interface pour le format unifié
+export interface UnifiedSong {
+    title: string;
+    bpm: number;
+    timeSignature: string; // Ex: "4/4"
+    key: string;           // Ex: "C"
+    content: string;       // Le texte brut format ChordPro
+}
+
+export interface ChordPosition {
+    symbol: string;
+    index: number; // Position dans le strippedText
+}
+
+export interface UnifiedLine {
+    id: number;
+    originalText: string; // La ligne complète avec balises [C]
+    strippedText: string; // Le texte sans les accords pour l'affichage Clean
+    chords: ChordPosition[];
+    section?: string;     // "Verse", "Chorus", ...
+    timestamp: number | null;
+    isSynced: boolean;
+}
+
