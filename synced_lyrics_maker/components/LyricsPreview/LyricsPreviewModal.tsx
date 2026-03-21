@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useEffect } from "react";
-import { X, Play, Pause, Rewind, FastForward } from "lucide-react";
-import { LyricLine } from "@/types";
+import React, { useEffect, useState } from "react";
+import { X, Play, Pause, Rewind, FastForward, Music2 } from "lucide-react";
+import { LyricLine, UnifiedLine } from "@/types";
 import { formatTime } from "@/utils/formatTime";
 import useLyricsSync from "@/hooks/useLyricsSync";
 import CurrentLyricDisplay from "@/components/LyricsPreview/CurrentLyricsDisplay";
@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 interface LyricsPreviewModalProps {
     isOpen: boolean;
     onClose: () => void;
-    lyrics: LyricLine[];
+    lyrics: (LyricLine | UnifiedLine)[];
     currentTime: number;
     duration: number;
     isPlaying: boolean;
@@ -46,6 +46,9 @@ const LyricsPreviewModal: React.FC<LyricsPreviewModalProps> = ({
     onPause,
     onSeek,
 }) => {
+    // État pour l'affichage des accords
+    const [showChords, setShowChords] = useState(true);
+
     // Hook de synchronisation lyrics/audio
     const {
         activeLine,
@@ -107,6 +110,20 @@ const LyricsPreviewModal: React.FC<LyricsPreviewModalProps> = ({
                                 {syncedCount}/{totalCount} synced
                             </Badge>
                         )}
+                        
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowChords(!showChords)}
+                            className={cn(
+                                "w-10 h-10 p-0 rounded-full transition-colors ml-2",
+                                showChords ? "bg-primary/20 text-primary" : "bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-white"
+                            )}
+                            title={showChords ? "Masquer les accords" : "Afficher les accords"}
+                        >
+                            <Music2 className="h-5 w-5" />
+                            <span className="sr-only">Accords</span>
+                        </Button>
                     </div>
                     <Button
                         variant="ghost"
@@ -130,6 +147,7 @@ const LyricsPreviewModal: React.FC<LyricsPreviewModalProps> = ({
                         previousLine={previousLine}
                         nextLine={nextLine}
                         progress={getLineProgress()}
+                        showChords={showChords}
                     />
                 </div>
 

@@ -1,121 +1,73 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Music, FileText, Guitar, ArrowRight, Eye, RotateCcw } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Eye, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import LyricsList from "@/components/LyricsList";
-import ChordsList from "@/components/ChordsList";
-import CombinedView from "@/components/CombinedView";
 import MiniAudioControls from "@/components/MiniAudioControls";
-import HelpModal from "@/components/HelpModal";
 import { useAudio } from "@/hooks/useAudio";
-import { LyricLine, ChordLine, ChordNotation, ChordSymbol, ViewMode } from "@/types";
+import { UnifiedLine } from "@/types";
 import { cn } from "@/lib/utils";
 import { stepVariants, stepTransition } from "@/lib/animations";
-import { KEY_OPTIONS } from "@/utils/chordNotation";
+import { UnifiedLineItem } from "@/components/UnifiedLineItem";
 
 interface StepSyncProps {
-  // Audio
   audio: ReturnType<typeof useAudio>;
-
-  // Lyrics
-  lyrics: LyricLine[];
+  lines: UnifiedLine[];
   selectedLineId: number | null;
   onSelectLine: (lineId: number) => void;
   onClearTimestamp: (lineId: number) => void;
-  onUpdateTimestamp: (lineId: number, timestamp: number | null) => void;
-  onUpdateLineText: (lineId: number, newText: string) => void;
   onDeleteLine: (lineId: number) => void;
   onClearList: () => void;
-
-  // Chords (optionnel)
-  chords?: ChordLine[];
-  selectedChordId?: number | null;
-  onSelectChord?: (chordId: number) => void;
-  onClearChordTimestamp?: (chordId: number) => void;
-  onUpdateChordTimestamp?: (chordId: number, timestamp: number | null) => void;
-  onUpdateChordText?: (chordId: number, newChords: ChordSymbol[]) => void;
-  onDeleteChord?: (chordId: number) => void;
-  onClearChordList?: () => void;
-
-  // Sync actions
   onSyncLine: () => void;
-  onSyncChord?: () => void;
-
-  // Navigation
   onContinue: () => void;
   onPreviewLyrics: () => void;
-
-  // Optionnel: retour
   onBack?: () => void;
-
-  // Tonalité musicale (partagée avec StepInput)
-  musicalKey?: string;
-  onMusicalKeyChange?: (key: string) => void;
 }
 
 /**
- * StepSync - Conteneur pour l'étape 2 du workflow (Synchronisation)
+ * StepSync - Étape 2 : Synchronisation Unifiée (ChordPro)
  *
- * Affiche:
- * - Mini contrôles audio avec bouton sync
- * - Toggle entre mode lyrics/accords/combiné
- * - Liste des lyrics à synchroniser
- * - Bouton "Exporter" quand au moins une ligne est synchronisée
+ * Affiche une liste unique de lignes avec:
+ * - Texte des paroles (stripped)
+ * - Accords positionnés au-dessus (style leadsheet)
+ * - Badge de section (Verse, Chorus, etc.)
+ * - Indicateur de synchronisation
+ *
+ * La synchronisation s'applique à la ligne entière (lyrics + chords)
  */
 export default function StepSync({
   audio,
-  lyrics,
+  lines,
   selectedLineId,
   onSelectLine,
   onClearTimestamp,
-  onUpdateTimestamp,
-  onUpdateLineText,
   onDeleteLine,
   onClearList,
-  chords = [],
-  selectedChordId = null,
-  onSelectChord,
-  onClearChordTimestamp,
-  onUpdateChordTimestamp,
-  onUpdateChordText,
-  onDeleteChord,
-  onClearChordList,
   onSyncLine,
-  onSyncChord,
   onContinue,
   onPreviewLyrics,
   onBack,
-  musicalKey = "C",
-  onMusicalKeyChange,
 }: StepSyncProps) {
+  // Obtenir la ligne sélectionnée
+  const selectedLine = useMemo(
+    () => lines.find((l) => l.id === selectedLineId),
+    [lines, selectedLineId]
+  );
 
-  // Mode de vue actuel
-  const [viewMode, setViewMode] = useState<ViewMode>("lyrics");
+  // Statistiques de synchronisation
+  const syncStats = useMemo(() => {
+    const total = lines.length;
+    const synced = lines.filter((l) => l.isSynced).length;
+    return {
+      total,
+      synced,
+      percentage: total > 0 ? Math.round((synced / total) * 100) : 0,
+    };
+  }, [lines]);
 
-  // Notation des accords
-  const [notation, setNotation] = useState<ChordNotation>("english");
-
-  // Handler local pour la tonalité (utilise la prop si fournie, sinon state local de secours)
-  const handleKeyChange = onMusicalKeyChange ?? (() => {});
-
-  // Y a-t-il des accords chargés ?
-  const chordsList = chords ?? [];
-  const hasChords = chordsList.length > 0;
-
-  // Stats lyrics
-  const syncedCount = lyrics.filter(line => line.isSynced).length;
-  const totalCount = lyrics.length;
-  const progressPercent = totalCount > 0 ? Math.round((syncedCount / totalCount) * 100) : 0;
-
-  // Stats chords
-  const chordsSyncedCount = chordsList.filter(c => c.isSynced).length;
-
-  const canExport = syncedCount > 0;
+  const canContinue = syncStats.synced > 0;
 
   return (
     <motion.div
@@ -124,269 +76,162 @@ export default function StepSync({
       animate="animate"
       exit="exit"
       transition={stepTransition}
-      className="flex flex-col gap-6"
+      className="flex flex-col gap-6 h-full pb-8"
     >
-      {/* Header avec progression */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-foreground">
-            Synchronisation
+            Synchronisation Unifiée
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Écoute l'audio et synchronise chaque ligne
+            Appuyez sur Entrée pour synchroniser la ligne sélectionnée.
+            Espace pour play/pause.
           </p>
         </div>
 
-        {/* Indicateur de progression */}
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <span className="text-2xl font-bold text-primary">{syncedCount}</span>
-            <span className="text-lg text-muted-foreground">/{totalCount}</span>
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            <Badge
-              variant={progressPercent === 100 ? "default" : "outline"}
-              className={cn(
-                "transition-all duration-300",
-                progressPercent === 100 && "bg-green-500/20 text-green-400 border-green-500/30"
-              )}
-            >
-              {progressPercent}% synced
-            </Badge>
-            <div className="w-24 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-primary-darkest to-primary transition-all duration-300"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
+        {/* Stats */}
+        <div className="flex gap-3">
+          <Badge
+            variant="outline"
+            className={cn(
+              "transition-all",
+              syncStats.synced > 0 &&
+                "bg-green-500/20 text-green-400 border-green-500/30"
+            )}
+          >
+            {syncStats.synced}/{syncStats.total} synced
+          </Badge>
+          <div className="text-sm font-semibold text-primary">
+            {syncStats.percentage}%
           </div>
         </div>
       </div>
 
-      {/* Contrôles audio mini */}
-      <MiniAudioControls
-        currentTime={audio.currentTime}
-        duration={audio.duration}
-        isPlaying={audio.isPlaying}
-        onPlay={audio.play}
-        onPause={audio.pause}
-        onSeek={audio.seek}
-        onSync={onSyncLine}
-        canSync={selectedLineId !== null && audio.isLoaded}
-        showSyncButton={true}
-        compact={false}
-      />
+      {/* Layout: Audio controls + List */}
+      <div className="flex flex-col lg:flex-row gap-6 flex-1">
+        {/* LEFT: List of lines */}
+        <div className="flex-1 flex flex-col gap-4 min-h-0">
+          {/* Progress bar */}
+          <div className="h-2 rounded-full bg-slate-900/40 border border-white/10 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-green-500 to-cyan-500 transition-all duration-500"
+              style={{ width: `${syncStats.percentage}%` }}
+            />
+          </div>
 
-      {/* Toggle mode de synchronisation */}
-      <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)} className="w-full">
-        <div className="flex items-center justify-between gap-4">
-          <TabsList className="grid grid-cols-3 w-fit">
-            <TabsTrigger value="lyrics" className="gap-1.5 px-4">
-              <FileText className="h-4 w-4" />
-              Lyrics
-            </TabsTrigger>
-            <TabsTrigger value="chords" className="gap-1.5 px-4" disabled={!hasChords}>
-              <Guitar className="h-4 w-4" />
-              Accords
-              {!hasChords && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">Vide</Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="both" className="gap-1.5 px-4" disabled={!hasChords}>
-              <Music className="h-4 w-4" />
-              Combiné
-              {!hasChords && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">Vide</Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Actions rapides + sélecteur de notation */}
-          <div className="flex items-center gap-2">
-            {/* Sélecteur de notation (visible quand chords ou both) */}
-            {hasChords && (viewMode === "chords" || viewMode === "both") && (
-              <Select value={notation} onValueChange={(value) => setNotation(value as ChordNotation)}>
-                <SelectTrigger className="w-[160px] h-8 text-xs bg-slate-800/50 border-white/10">
-                  <SelectValue placeholder="Notation" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="english">Anglais (C D E)</SelectItem>
-                  <SelectItem value="latin">Latin (Do Ré Mi)</SelectItem>
-                  <SelectItem value="numerical">Nashville (1 2 3)</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-
-            {/* Sélecteur de tonalité (visible uniquement en notation Nashville) */}
-            {hasChords && notation === "numerical" && (viewMode === "chords" || viewMode === "both") && (
-              <Select value={musicalKey} onValueChange={handleKeyChange}>
-                <SelectTrigger className="w-[160px] h-8 text-xs bg-slate-800/50 border-white/10">
-                  <SelectValue placeholder="Tonalité" />
-                </SelectTrigger>
-                <SelectContent className="max-h-64">
-                  {KEY_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
-            <HelpModal />
-            {lyrics.length > 0 && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onPreviewLyrics}
-                  className="gap-1.5"
-                  disabled={!audio.isLoaded || syncedCount === 0}
-                >
-                  <Eye className="h-4 w-4" />
-                  Preview
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    onClearList();
-                    onClearChordList?.();
-                  }}
-                  className="gap-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  Reset
-                </Button>
-              </>
+          {/* Lines list - scrollable */}
+          <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+            {lines.length === 0 ? (
+              <div className="flex items-center justify-center h-full text-slate-400">
+                <div className="text-center">
+                  <p className="text-sm">Aucune ligne chargée</p>
+                  <p className="text-xs mt-2 opacity-70">
+                    Retournez à l'étape 1 pour charger du contenu ChordPro
+                  </p>
+                </div>
+              </div>
+            ) : (
+              lines.map((line) => (
+                <UnifiedLineItem
+                  key={line.id}
+                  line={line}
+                  isSelected={selectedLineId === line.id}
+                  onSelect={onSelectLine}
+                  onDelete={onDeleteLine}
+                  onClearTimestamp={onClearTimestamp}
+                />
+              ))
             )}
           </div>
+
+          {/* Bottom actions */}
+          {lines.length > 0 && (
+            <div className="flex gap-2 pt-4 border-t border-white/5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={onClearList}
+              >
+                <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                Clear All
+              </Button>
+            </div>
+          )}
         </div>
 
-        {/* Contenu des tabs */}
-        <TabsContent value="lyrics" className="mt-4">
-          <div className="card">
-            <div className="card-header">
-              <div>
-                <h3 className="card-title text-base">Liste des Lyrics</h3>
-                <p className="card-subtitle text-xs">
-                  Clique sur une ligne pour la sélectionner, puis appuie sur <kbd className="px-1.5 py-0.5 bg-slate-700 rounded text-[10px]">Entrée</kbd> ou <span className="text-primary">Sync</span>
-                </p>
-              </div>
-            </div>
-            <div className="card-body">
-              <LyricsList
-                lyrics={lyrics}
-                selectedLineId={selectedLineId}
-                onSelectLine={onSelectLine}
-                onClearTimestamp={onClearTimestamp}
-                onUpdateTimestamp={onUpdateTimestamp}
-                onUpdateLineText={onUpdateLineText}
-                onDeleteLine={onDeleteLine}
-              />
-            </div>
+        {/* RIGHT: Audio controls + Navigation */}
+        <div className="w-full lg:w-80 flex flex-col gap-4">
+          {/* Audio Controls */}
+          <div className="rounded-xl bg-slate-900/40 border border-white/10 p-4">
+            <MiniAudioControls
+              currentTime={audio.currentTime}
+              duration={audio.duration}
+              isPlaying={audio.isPlaying}
+              onPlay={audio.play}
+              onPause={audio.pause}
+              onSeek={audio.seek}
+              onSync={onSyncLine}
+              canSync={selectedLineId !== null && audio.isLoaded}
+              showSyncButton={true}
+              compact={false}
+            />
           </div>
-        </TabsContent>
 
-        <TabsContent value="chords" className="mt-4">
-          {hasChords && onSelectChord && onClearChordTimestamp && onUpdateChordTimestamp && onUpdateChordText && onDeleteChord ? (
-            <ChordsList
-              chords={chordsList}
-              selectedChordId={selectedChordId ?? null}
-              onSelectChord={onSelectChord}
-              onClearTimestamp={onClearChordTimestamp}
-              onUpdateTimestamp={onUpdateChordTimestamp}
-              onUpdateChordText={onUpdateChordText}
-              onDeleteChord={onDeleteChord}
-              notation={notation}
-              musicalKey={musicalKey}
-            />
-          ) : (
-            <div className="card">
-              <div className="card-body py-12 text-center">
-                <Guitar className="h-12 w-12 mx-auto text-slate-500 mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  Aucun accord chargé
-                </h3>
-                <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  Retournez à l'étape 1, sélectionnez l'onglet "Paroles + Accords"
-                  et chargez vos accords pour les synchroniser ici.
-                </p>
-              </div>
-            </div>
-          )}
-        </TabsContent>
+          {/* Preview Button */}
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={onPreviewLyrics}
+            disabled={lines.length === 0}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Preview Karaoké
+          </Button>
 
-        <TabsContent value="both" className="mt-4">
-          {hasChords ? (
-            <CombinedView
-              lyrics={lyrics}
-              chords={chordsList}
-              onSync={() => {}}
-              notation={notation}
-              musicalKey={musicalKey}
-            />
-          ) : (
-            <div className="card">
-              <div className="card-body py-12 text-center">
-                <Music className="h-12 w-12 mx-auto text-slate-500 mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  Vue Combinée
-                </h3>
-                <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  Chargez d&apos;abord des accords pour activer cette vue.
-                </p>
-              </div>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+          {/* Continue Button */}
+          <Button
+            size="lg"
+            className={cn(
+              "w-full transition-all duration-300",
+              canContinue
+                ? "bg-gradient-to-r from-primary to-cyan-600 hover:scale-[1.02] shadow-lg shadow-primary/20"
+                : "opacity-50 cursor-not-allowed"
+            )}
+            disabled={!canContinue}
+            onClick={onContinue}
+          >
+            Continuer vers l'Export
+          </Button>
 
-      {/* Section navigation */}
-      <div
-        className={cn(
-          "flex items-center justify-between p-4 rounded-xl border transition-all duration-300",
-          canExport
-            ? "border-green-500/30 bg-green-500/5"
-            : "border-white/10 bg-slate-800/30"
-        )}
-      >
-        <div className="flex flex-col gap-1">
-          <span className="text-sm font-medium text-foreground">
-            {canExport ? "Prêt à exporter !" : "Synchronisez au moins une ligne"}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            {canExport
-              ? `${syncedCount} ligne${syncedCount > 1 ? 's' : ''} synchronisée${syncedCount > 1 ? 's' : ''}`
-              : "Utilisez les contrôles ci-dessus pour synchroniser"
-            }
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
+          {/* Back Button */}
           {onBack && (
             <Button
               variant="ghost"
+              className="w-full text-slate-400 hover:text-white"
               onClick={onBack}
-              className="gap-2"
             >
+              <ArrowLeft className="h-4 w-4 mr-2" />
               Retour
             </Button>
           )}
-          <Button
-            onClick={onContinue}
-            disabled={!canExport}
-            className={cn(
-              "gap-2 transition-all duration-300",
-              canExport && "bg-green-500 hover:bg-green-600"
-            )}
-          >
-            Exporter
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+
+          {/* Tips */}
+          <div className="p-4 rounded-lg bg-slate-900/20 border border-white/5 text-xs text-muted-foreground space-y-2">
+            <h4 className="font-semibold text-foreground">Raccourcis</h4>
+            <ul className="space-y-1 text-slate-400">
+              <li>
+                <code className="text-green-400">Espace</code> : Play/Pause
+              </li>
+              <li>
+                <code className="text-green-400">Entrée</code> : Sync ligne
+              </li>
+              <li>Cliquez sur une ligne pour la sélectionner</li>
+            </ul>
+          </div>
         </div>
       </div>
     </motion.div>
   );
 }
-

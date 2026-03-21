@@ -3,7 +3,7 @@ import { LyricLine } from "@/types";
 interface PatternMatch {
     text: string;
     count: number;
-    lineIds: string[];
+    lineIds: number[];
 }
 
 /**
@@ -13,7 +13,7 @@ interface PatternMatch {
  */
 
 export function detectChorus(lyrics: LyricLine[]): PatternMatch | null {
-    const textCount = new Map<string, { count: number, ids: string[] }>();
+    const textCount = new Map<string, { count: number, ids: number[] }>();
 
     for(const line of lyrics) {
         const normalized = line.text.trim().toLowerCase();

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { FileJson, FileText, Download, Guitar } from "lucide-react";
-import { LyricLine, ChordLine } from "@/types";
+import { LyricLine, ChordLine, UnifiedLine } from "@/types";
 import { useExport } from "@/hooks/useExport";
 
 // Composants shadcn/ui
@@ -13,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cn } from "@/lib/utils";
 
 interface ExportPanelProps {
-  lyrics: LyricLine[];
+  lyrics: (LyricLine | UnifiedLine)[];
   chords?: ChordLine[];
   musicalKey?: string;
   exporter: ReturnType<typeof useExport>;

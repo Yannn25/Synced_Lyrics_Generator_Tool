@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { LyricLine } from "@/types";
+import { LyricLine, UnifiedLine } from "@/types";
+
+type SyncItem = LyricLine | UnifiedLine;
 
 /**
  * Personalized hook for managing synced lyrics
  * Return the index of the current line and is information for the preview
  */
-export const useLyricsSync = (lyrics: LyricLine[], currentTime: number, isPlaying: boolean) => {
+export const useLyricsSync = (lyrics: SyncItem[], currentTime: number, isPlaying: boolean) => {
     const [activeLineIndex, setActiveLineIndex] = useState<number>(-1); // If no line is selected, -1
 
     // Update active line when currentTime changes

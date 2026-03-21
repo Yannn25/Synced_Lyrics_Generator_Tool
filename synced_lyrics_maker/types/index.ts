@@ -53,10 +53,11 @@ export type AudioPlayerProps = {
 }
 
 export interface CurrentLyricDisplayProps {
-    activeLine: LyricLine | null;
-    previousLine: LyricLine | null;
-    nextLine: LyricLine | null;
+    activeLine: LyricLine | UnifiedLine | null;
+    previousLine: LyricLine | UnifiedLine | null;
+    nextLine: LyricLine | UnifiedLine | null;
     progress: number;
+    showChords?: boolean;
 }
 
 // Props for the multiple step workflow
@@ -209,4 +210,3 @@ export interface UnifiedLine {
     timestamp: number | null;
     isSynced: boolean;
 }
-

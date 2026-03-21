@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/card";
 import { useAudio } from "@/hooks/useAudio";
 import { useExport } from "@/hooks/useExport";
-import { LyricLine, ChordLine } from "@/types";
+import { LyricLine, ChordLine, UnifiedLine } from "@/types";
 import { formatTime } from "@/utils/formatTime";
 import { cn } from "@/lib/utils";
 import {
@@ -34,11 +34,10 @@ import {
 
 // Composant réutilisable
 import ExportPanel from "@/components/ExportPanel";
-import MiniAudioControls from "@/components/MiniAudioControls";
 
 interface StepExportProps {
   audio: ReturnType<typeof useAudio>;
-  lyrics: LyricLine[];
+  lyrics: (LyricLine | UnifiedLine)[];
   chords?: ChordLine[];
   musicalKey?: string;
   exporter: ReturnType<typeof useExport>;
@@ -61,7 +60,7 @@ export default function StepExport({
   onBack,
   onPreviewLyrics,
 }: StepExportProps) {
-  const stats = exporter.getExportStats(lyrics);
+  const stats = exporter.getExportStats(lyrics, chords);
 
   // Calcul de la durée totale synced
   const syncedLyrics = lyrics.filter(
