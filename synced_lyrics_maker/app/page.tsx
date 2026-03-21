@@ -80,6 +80,15 @@ export default function Home() {
   const [lyricsDraft, setLyricsDraft] = useState("");
   const [chordsDraft, setChordsDraft] = useState("");
 
+  // Unified State for ChordPro format
+  const [songData, setSongData] = useState<UnifiedSong>({
+    title: "",
+    bpm: 0,
+    timeSignature: "4/4",
+    key: "C",
+    content: ""
+  });
+
   // ===== DERIVED STATE =====
   const lyricsLoaded = lyrics.length > 0;
   const chordsLoaded = chords.length > 0;
@@ -224,22 +233,14 @@ export default function Home() {
       {/* Contenu principal avec transitions */}
       <main className="mx-auto w-full max-w-4xl pt-8">
         <AnimatePresence mode="wait">
-          {/* Étape 1 : Chargement Audio + Lyrics */}
+          {/* Étape 1 : Éditeur Unifié (ChordPro) */}
           {currentStep === 1 && (
             <StepInput
               key="step-input"
               audio={audio}
-              onLoadLyrics={handleLoadLyrics}
-              onLoadChords={handleLoadChords}
-              lyricsDraft={lyricsDraft}
-              onLyricsDraftChange={setLyricsDraft}
-              chordsDraft={chordsDraft}
-              onChordsDraftChange={setChordsDraft}
+              songData={songData}
+              onSongDataChange={setSongData}
               onContinue={goToNextStep}
-              lyricsLoaded={lyricsLoaded}
-              chordsLoaded={chordsLoaded}
-              musicalKey={musicalKey}
-              onMusicalKeyChange={setMusicalKey}
             />
           )}
 
