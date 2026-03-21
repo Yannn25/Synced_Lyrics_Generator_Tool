@@ -1,4 +1,5 @@
-import { LyricLine } from "@/types";
+import { LyricLine, UnifiedLine } from "@/types";
+import { normalizeSectionName } from "./sections";
 
 interface PatternMatch {
     text: string;
@@ -48,8 +49,36 @@ export function detectChorus(lyrics: LyricLine[]): PatternMatch | null {
 /**
  * Generate a filename based on the content inside the lyrics
  */
-export function generateSmartFileName(lyrics: LyricLine[]): string {
-    const chorus = detectChorus(lyrics);
+export function generateSmartFileName(lyrics: (LyricLine | UnifiedLine)[]): string {
+    // 1. Try to find a Title metadata if available in one of the lines (not stored on line currently but maybe passed differently)
+    // For now we rely on content analysis
+
+    // 2. Try to find a Chorus section
+    const chorusLine = lyrics.find(l => {
+        if('section' in l && l.section) {
+            return normalizeSectionName(l.section!) === 'Chorus';
+        }
+        return false;
+    });
+
+    if (chorusLine && 'strippedText' in chorusLine) {
+        const words = chorusLine.strippedText.split(/\s+/).slice(0, 3).join('-');
+        const sanitized = words.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+        if (sanitized.length >= 3) {
+            return sanitized;
+        }
+    }
+
+    // 3. Fallback to existing chorus detection (repeated lines)
+    // Need to cast/adapt to LyricLine for detectChorus
+    const adaptedLyrics = lyrics.map(l => {
+         if ('strippedText' in l) {
+             return { id: l.id, text: l.strippedText, timestamp: null, isSynced: false, isEditing: false } as LyricLine;
+         }
+         return l as LyricLine;
+    });
+
+    const chorus = detectChorus(adaptedLyrics);
 
     if(chorus) {
         // Take the first word of the chorus
@@ -61,9 +90,14 @@ export function generateSmartFileName(lyrics: LyricLine[]): string {
     }
 
     // Fallback: first words of the first line
-    const firstLine = lyrics.find(l => l.text.trim().length > 3);
+    const firstLine = lyrics.find(l => {
+        const text = 'strippedText' in l ? l.strippedText : l.text;
+        return text.trim().length > 3;
+    });
+    
     if (firstLine) {
-        const words = firstLine.text.split(/\s+/).slice(0, 2).join('-');
+        const text = 'strippedText' in firstLine ? firstLine.strippedText : (firstLine as LyricLine).text;
+        const words = text.split(/\s+/).slice(0, 2).join('-');
         return words.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase() || 'synced-lyrics';
     }
 

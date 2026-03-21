@@ -1,14 +1,10 @@
 import { UnifiedSong, UnifiedLine, ChordPosition } from "@/types";
+import { isSectionHeader, extractSectionName } from "@/utils/sections";
 
 /**
  * Regex pour détecter les accords entre crochets : [C], [Am7], [G/B]
  */
-const CHORD_REGEX = /\[([^\]]+)\]/g;
-
-/**
- * Regex pour détecter les sections entre accolades : {Verse}, {Chorus}, {Refrain}
- */
-const SECTION_REGEX = /^\{([^}]+)\}$/;
+const CHORD_REGEX = /\[([^[\]]+)]/g;
 
 /**
  * Extract metadata from ChordPro text
@@ -19,7 +15,7 @@ export function extractMetadata(text: string): Partial<UnifiedSong> {
     const lines = text.split('\n');
     
     // Directive regex: {key: value}
-    const DIRECTIVE_REGEX = /^\{(\w+):([^}]+)\}$/;
+    const DIRECTIVE_REGEX = /^{(\w+):([^}]+)}$/;
 
     for (const line of lines) {
         const trimmed = line.trim();
@@ -74,14 +70,13 @@ export function parseChordPro(text: string): UnifiedLine[] {
 
         // Check for directive/metadata (e.g. {title: ...})
         // We skip them in lines parsing
-        if (trimmedLine.match(/^\{(\w+):([^}]+)\}$/)) {
+        if (trimmedLine.match(/^{(\w+):([^}]+)}$/)) {
             continue;
         }
 
         // Check for section
-        const sectionMatch = trimmedLine.match(SECTION_REGEX);
-        if (sectionMatch) {
-            currentSection = sectionMatch[1];
+        if (isSectionHeader(trimmedLine)) {
+            currentSection = extractSectionName(trimmedLine);
             continue; // Sections are not lyric lines themselves in this model
         }
 
@@ -113,12 +108,6 @@ function extractChords(text: string): { strippedText: string, chords: ChordPosit
     let strippedText = "";
     const chords: ChordPosition[] = [];
     
-    let lastIndex = 0;
-    let match;
-
-    // Reset regex state
-    CHORD_REGEX.lastIndex = 0;
-
     // We act manually to rebuild the string and track indices
     // But a simpler approach with split/matchAll might be better
     
