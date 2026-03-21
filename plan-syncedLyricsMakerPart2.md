@@ -703,7 +703,7 @@ export function useChords() {
   const updateChordText = useCallback((chordId: string | number, newText: string) => {
     // Cette fonction doit re-parser la ligne pour mettre à jour les ChordSymbol[]
     // Implémentation simplifiée :
-    /* 
+    /*
     const newChords = parseLineToSymbols(newText);
     engine.setItems(prev => prev.map(chord =>
       chord.id === chordId ? { ...chord, chords: newChords } : chord
@@ -765,9 +765,9 @@ function parseChordSymbol(token: string): ChordSymbol {
   if (!match) {
     return { label: token, root: token, quality: "" };
   }
-  
+
   const [, root, quality, , bass] = match;
-  
+
   return {
     label: token,
     root,
@@ -790,7 +790,7 @@ export function parseChords(text: string): ChordLine[] {
       // Split par espace ou tabulation
       const tokens = line.split(/\s+/).filter(t => t.length > 0);
       const chords = tokens.map(parseChordSymbol);
-      
+
       return {
         id: crypto.randomUUID(), // Utiliser l'API native ou uuid
         timestamp: null,
@@ -840,7 +840,7 @@ export function combinedToExport(lyrics: LyricLine[], chords: ChordLine[]): Expo
     .map(l => ({ time: l.timestamp!, text: l.text, type: 'lyric' }));
 
   const chordsExport = chordsToExport(chords);
-  
+
   return {
     lyrics: lyricsExport,
     chords: chordsExport,
