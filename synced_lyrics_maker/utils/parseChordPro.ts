@@ -104,7 +104,7 @@ export function parseChordPro(text: string): UnifiedLine[] {
  * Extract chords from a line and return the stripped text and chord positions
  * @param text The line with chords (e.g. "Amazing [G]Grace")
  */
-function extractChords(text: string): { strippedText: string, chords: ChordPosition[] } {
+export function extractChords(text: string): { strippedText: string, chords: ChordPosition[] } {
     let strippedText = "";
     const chords: ChordPosition[] = [];
     

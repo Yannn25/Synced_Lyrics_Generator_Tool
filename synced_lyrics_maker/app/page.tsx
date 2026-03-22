@@ -30,6 +30,8 @@ export default function Home() {
     selectLine,
     syncLine,
     clearTimestamp,
+    updateTimestamp,
+    updateLineContent,
     deleteLine,
     clearAll,
   } = useUnifiedSync();
@@ -89,6 +91,8 @@ export default function Home() {
               selectedLineId={selectedLineId}
               onSelectLine={selectLine}
               onClearTimestamp={clearTimestamp}
+              onUpdateTimestamp={updateTimestamp}
+              onUpdateLineContent={updateLineContent}
               onDeleteLine={deleteLine}
               onClearList={clearAll}
               onSyncLine={handleSyncLine}

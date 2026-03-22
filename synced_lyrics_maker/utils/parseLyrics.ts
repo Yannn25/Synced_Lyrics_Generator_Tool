@@ -1,5 +1,4 @@
 import { LyricLine} from "@/types";
-import {v4 as uuidv4} from "uuid";
 
 /**
  * Parse lyrics from a text who is copy and pasted in the textarea

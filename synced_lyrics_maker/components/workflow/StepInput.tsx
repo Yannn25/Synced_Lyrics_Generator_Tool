@@ -74,19 +74,6 @@ export default function StepInput({
 		onSongDataChange({ ...songData, [field]: value });
 	};
 
-	// 3. Scan automatique des métadonnées depuis le texte
-	const handleAutoScan = () => {
-		const extracted = extractMetadata(songData.content);
-		// On ne fusionne que si des valeurs sont trouvées
-		const newMeta = { ...songData };
-		if (extracted.title) newMeta.title = extracted.title;
-		if (extracted.key) newMeta.key = extracted.key;
-		if (extracted.bpm) newMeta.bpm = extracted.bpm;
-		if (extracted.timeSignature) newMeta.timeSignature = extracted.timeSignature;
-		// ... autres champs si nécessaire
-		onSongDataChange(newMeta);
-	};
-
 	// 4. Insertion de texte au curseur
 	const insertAtCursor = (textToInsert: string) => {
 		const textarea = document.getElementById(
@@ -251,7 +238,6 @@ export default function StepInput({
 										)
 									}
 								/>
-								<Zap className="w-3.5 h-3.5 absolute left-3 top-3 text-yellow-500/70" />
 							</div>
 						</div>
 
@@ -299,31 +285,19 @@ export default function StepInput({
 							</Select>
 						</div>
 
-						<div className="col-span-2 md:col-span-1 flex items-end">
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={handleAutoScan}
-								className="w-full bg-slate-800/50 border-white/10 hover:bg-slate-800 text-xs"
-								title="Scanner le texte pour extraire les métadonnées ({bpm}, {key}...)"
-							>
-								<Wand2 className="w-3.5 h-3.5 mr-2 text-primary" />
-								Auto-Scan
-							</Button>
-						</div>
 					</div>
 
 					{/* 2. Bloc Éditeur (Centre) */}
 					<div className="flex-1 relative group">
 						<Textarea
 							id="chordpro-editor"
-							className="min-h-[500px] font-mono text-sm leading-relaxed bg-slate-950/30 border-white/10 resize-none p-6"
+							className="min-h-[400px] font-mono text-sm leading-relaxed bg-slate-950/30 border-white/10 resize-none p-6"
 							placeholder={`{Intro}
-									[C]Amazing [G]Grace, how [Am]sweet the [F]sound
+[C]Amazing [G]Grace, how [Am]sweet the [F]sound
 
-									{Verse 1}
-									[C]Amazing [G]Grace, how [Am]sweet the [F]sound
-									That [C]saved a [G]wretch like [C]me`}
+{Verse 1}
+[C]Amazing [G]Grace, how [Am]sweet the [F]sound
+That [C]saved a [G]wretch like [C]me`}
 							value={songData.content}
 							onChange={(e) => updateField("content", e.target.value)}
 						/>

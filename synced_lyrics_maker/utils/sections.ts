@@ -19,17 +19,11 @@ const SECTION_MAPPINGS: Record<string, string> = {
   'solo': 'Solo',
 
   // French (supprimé 'introduction' car déjà défini)
-  'couplet': 'Verse',
-  'pre-refrain': 'Pre-Chorus',
-  'prerefrain': 'Pre-Chorus',
-  'pont': 'Bridge',
-  'final': 'Outro',
-  
-  // Spanish
-  'verso': 'Verse',
-  'coro': 'Chorus',
-  'estribillo': 'Chorus',
-  'puente': 'Bridge',
+    'couplet': 'Verse',
+    'pre-refrain': 'Pre-Chorus',
+    'prerefrain': 'Pre-Chorus',
+    'pont': 'Bridge',
+    'final': 'Outro',
 };
 
 /**

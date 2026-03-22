@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { UnifiedLine } from "@/types";
-import { parseChordPro } from "@/utils/parseChordPro";
+import { parseChordPro, extractChords } from "@/utils/parseChordPro";
 
 /**
  * Hook pour gérer la synchronisation unifiée (lyrics + accords)
@@ -77,6 +77,26 @@ export function useUnifiedSync() {
   }, []);
 
   /**
+   * Mettre à jour le contenu (texte + accords) d'une ligne
+   */
+  const updateLineContent = useCallback((lineId: number, newContent: string) => {
+    setLines((prev) =>
+      prev.map((line) => {
+        if (line.id === lineId) {
+          const { strippedText, chords } = extractChords(newContent);
+          return {
+            ...line,
+            originalText: newContent,
+            strippedText,
+            chords,
+          };
+        }
+        return line;
+      })
+    );
+  }, []);
+
+  /**
    * Supprimer une ligne
    */
   const deleteLine = useCallback((lineId: number) => {
@@ -98,7 +118,7 @@ export function useUnifiedSync() {
   /**
    * Obtenir les statistiques de synchronisation
    */
-  const getSyncStats = useCallback(() => {
+  const syncStats = useCallback(() => {
     const total = lines.length;
     const synced = lines.filter((l) => l.isSynced).length;
     return {
@@ -116,9 +136,9 @@ export function useUnifiedSync() {
     syncLine,
     clearTimestamp,
     updateTimestamp,
+    updateLineContent,
     deleteLine,
     clearAll,
-    getSyncStats,
+    syncStats,
   };
 }
-
