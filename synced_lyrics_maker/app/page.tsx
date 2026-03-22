@@ -1,5 +1,5 @@
 'use client'
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import Footer from "@/components/layout/Footer";
 import StepIndicator from "@/components/workflow/StepIndicator";
@@ -36,6 +36,7 @@ export default function Home() {
     clearAll,
   } = useUnifiedSync();
   const [showPreview, setShowPreview] = useState(false);
+  const lastLoadedContentRef = useRef<string>("");
   const [songData, setSongData] = useState<UnifiedSong>({
     title: "",
     bpm: 0,
@@ -53,8 +54,9 @@ export default function Home() {
     });
   }, [audio.isLoaded, hasInputContent, hasSyncedLines, updateConditions]);
   useEffect(() => {
-    if (currentStep === 2) {
+    if (currentStep === 2 && songData.content !== lastLoadedContentRef.current) {
       loadContent(songData.content);
+      lastLoadedContentRef.current = songData.content;
     }
   }, [currentStep, songData.content, loadContent]);
   const handleSyncLine = useCallback(() => {
@@ -107,7 +109,8 @@ export default function Home() {
               audio={audio}
               lyrics={lines}
               chords={[]}
-              musicalKey={songData.key}
+              metadata={songData}
+              audioBaseName={audio.audioBaseName}
               exporter={exporter}
               onBack={goToPreviousStep}
               onPreviewLyrics={handleOpenPreview}

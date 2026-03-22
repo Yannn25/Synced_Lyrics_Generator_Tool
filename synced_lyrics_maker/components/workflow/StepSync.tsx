@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import MiniAudioControls from "@/components/MiniAudioControls";
 import UnifiedLyricsList from "@/components/UnifiedLyricsList";
+import StepHelpModal from "@/components/workflow/StepHelpModal";
 import { useAudio } from "@/hooks/useAudio";
 import { UnifiedLine } from "@/types";
 import { cn } from "@/lib/utils";
@@ -111,6 +112,7 @@ export default function StepSync({
 
         {/* Indicateur de progression (Style Ancien) */}
         <div className="flex items-center gap-3">
+          <StepHelpModal step={2} />
           <div className="text-right hidden sm:block">
             <span className="text-2xl font-bold text-primary">{syncStats.synced}</span>
             <span className="text-lg text-muted-foreground">/{syncStats.total}</span>

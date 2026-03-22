@@ -125,10 +125,30 @@ export interface ExportChordLine {
 export interface ExportData {
   lyrics: ExportLyricLine[];
   chords?: ExportChordLine[];
-  meta?: {
-    key?: string;            // Tonalité globale (ex: "Cm")
-    timeSignature?: string;  // Ex: "4/4"
-  };
+  meta?: ExportMetadata;
+}
+
+export interface ExportMetadata {
+  key?: string;            // Tonalite globale (ex: "Cm")
+  bpm?: number;
+  timeSignature?: string;  // Ex: "4/4"
+  about?: string;
+}
+
+export interface UnifiedExportLine {
+  id: number;
+  originalText: string;
+  strippedText: string;
+  chords: ChordPosition[];
+  section?: string;
+  timestamp: number | null;
+  isSynced: boolean;
+  isInstrumental?: boolean;
+}
+
+export interface UnifiedExportData {
+  meta?: ExportMetadata;
+  lines: UnifiedExportLine[];
 }
 
 // ═══════════════════════════════════════════════════════

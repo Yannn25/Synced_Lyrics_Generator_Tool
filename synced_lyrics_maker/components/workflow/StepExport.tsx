@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/card";
 import { useAudio } from "@/hooks/useAudio";
 import { useExport } from "@/hooks/useExport";
-import { LyricLine, ChordLine, UnifiedLine } from "@/types";
+import { LyricLine, ChordLine, UnifiedLine, UnifiedSong } from "@/types";
 import { formatTime } from "@/utils/formatTime";
 import { cn } from "@/lib/utils";
 import {
@@ -34,12 +34,14 @@ import {
 
 // Composant réutilisable
 import ExportPanel from "@/components/ExportPanel";
+import StepHelpModal from "@/components/workflow/StepHelpModal";
 
 interface StepExportProps {
   audio: ReturnType<typeof useAudio>;
   lyrics: (LyricLine | UnifiedLine)[];
   chords?: ChordLine[];
-  musicalKey?: string;
+  metadata?: Partial<UnifiedSong>;
+  audioBaseName?: string;
   exporter: ReturnType<typeof useExport>;
   onBack: () => void;
   onPreviewLyrics: () => void;
@@ -55,7 +57,8 @@ export default function StepExport({
   audio,
   lyrics,
   chords = [],
-  musicalKey,
+  metadata,
+  audioBaseName,
   exporter,
   onBack,
   onPreviewLyrics,
@@ -98,15 +101,18 @@ export default function StepExport({
         </div>
 
         {/* Bouton Preview Lyrics */}
-        <Button
-          variant="outline"
-          onClick={onPreviewLyrics}
-          className="gap-2"
-          disabled={!audio.isLoaded || stats.synced === 0}
-        >
-          <Play className="h-4 w-4" />
-          Preview Lyrics
-        </Button>
+        <div className="flex items-center gap-2">
+          <StepHelpModal step={3} />
+          <Button
+            variant="outline"
+            onClick={onPreviewLyrics}
+            className="gap-2"
+            disabled={!audio.isLoaded || stats.synced === 0}
+          >
+            <Play className="h-4 w-4" />
+            Preview Lyrics
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -212,7 +218,14 @@ export default function StepExport({
 
         <CardContent>
           {/* Utilisation de ExportPanel sans la carte wrapper */}
-          <ExportPanel lyrics={lyrics} chords={chords} musicalKey={musicalKey} exporter={exporter} showCard={false} />
+          <ExportPanel
+            lyrics={lyrics}
+            chords={chords}
+            metadata={metadata}
+            audioBaseName={audioBaseName}
+            exporter={exporter}
+            showCard={false}
+          />
         </CardContent>
       </Card>
 

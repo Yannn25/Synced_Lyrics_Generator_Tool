@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import AudioPlayer from "@/components/AudioPlayer";
 import UnifiedInput from "@/components/UnifiedInput"; // Import du nouveau composant
+import StepHelpModal from "@/components/workflow/StepHelpModal";
 import { useAudio } from "@/hooks/useAudio";
 import { cn } from "@/lib/utils";
 import { stepVariants, stepTransition } from "@/lib/animations";
@@ -109,7 +110,8 @@ export default function StepInput({
 				</div>
 
 				{/* Status Badges */}
-				<div className="flex gap-2">
+				<div className="flex gap-2 items-center">
+					<StepHelpModal step={1} />
 					<Badge
 						variant={audio.isLoaded ? "default" : "outline"}
 						className={cn(
@@ -182,29 +184,6 @@ export default function StepInput({
 						Continuer vers la Synchro
 					</Button>
 
-					{/* Instructions / Tips */}
-					<div className="p-4 rounded-xl bg-slate-900/40 border border-white/5 text-xs text-muted-foreground space-y-3 shrink-0">
-						<h4 className="font-semibold text-foreground flex items-center gap-2">
-							<CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-							Format ChordPro Supporté
-						</h4>
-						<div className="space-y-2">
-							<div className="p-2 bg-slate-950/50 rounded border border-white/5">
-								<code className="text-purple-300">[C]</code> <span className="text-slate-400">Amazing</span> <code className="text-purple-300">[G]</code> <span className="text-slate-400">Grace</span>
-							</div>
-							<p>Les accords doivent être entre crochets, placés juste devant la syllabe concernée.</p>
-						</div>
-						
-						<h4 className="font-semibold text-foreground mt-4 flex items-center gap-2">
-							<Zap className="w-3.5 h-3.5 text-yellow-500" />
-							Fonctionnalités
-						</h4>
-						<ul className="list-disc list-inside space-y-1 ml-1 opacity-80">
-							<li><strong className="text-white">Auto-Scan</strong> : Détecte automatiquement Titre, BPM et Key dans le texte.</li>
-							<li><strong className="text-white">Insertion Rapide</strong> : Utilisez la barre d'outils pour ajouter des accords ou sections.</li>
-							<li><strong className="text-white">Notation</strong> : Choisissez entre Anglais (C), Latin (Do) ou Nashville (1).</li>
-						</ul>
-					</div>
 				</div>
 			</div>
 		</motion.div>

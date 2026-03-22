@@ -294,7 +294,6 @@ function TestUseExport() {
         exportLRC,
         exportJSON,
         downloadFile,
-        generateFilename,
         quickExport,
         getExportStats
     } = useExport();
@@ -326,11 +325,11 @@ function TestUseExport() {
         log(`Résultat:\n${json}`);
     };
 
-    const testGenerateFilename = () => {
-        const lrcName = generateFilename('lrc');
-        const jsonName = generateFilename('json');
-        log(`📁 generateFilename('lrc') = ${lrcName}`);
-        log(`📁 generateFilename('json') = ${jsonName}`);
+    const testFilenameFromAudio = () => {
+        const lrcResult = quickExport(testLyrics, 'lrc', { audioBaseName: 'mon-audio' });
+        const jsonResult = quickExport(testLyrics, 'json', { audioBaseName: 'mon-audio' });
+        log(`📁 Nom LRC attendu = ${lrcResult.filename}`);
+        log(`📁 Nom JSON attendu = ${jsonResult.filename}`);
     };
 
     const testGetStats = () => {
@@ -387,8 +386,8 @@ function TestUseExport() {
                 <TestButton onClick={testExportJSON}>
                     exportJSON()
                 </TestButton>
-                <TestButton onClick={testGenerateFilename}>
-                    generateFilename()
+                <TestButton onClick={testFilenameFromAudio}>
+                    nom depuis audioBaseName
                 </TestButton>
                 <TestButton onClick={testGetStats}>
                     getExportStats()
@@ -411,7 +410,7 @@ function TestUseExport() {
             <CheckList items={[
                 'exportLRC() → retourne format [mm:ss.xx]texte',
                 'exportJSON() → retourne JSON valide',
-                'generateFilename() → nom avec date',
+                'quickExport(..., { audioBaseName }) → nom base + extension',
                 'quickExport() → déclenche téléchargement',
                 'Export avec 0 lignes synced → erreur'
             ]} />

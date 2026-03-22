@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { UnifiedLine } from "@/types";
 import { parseChordPro, extractChords } from "@/utils/parseChordPro";
 
@@ -9,6 +9,11 @@ import { parseChordPro, extractChords } from "@/utils/parseChordPro";
 export function useUnifiedSync() {
   const [lines, setLines] = useState<UnifiedLine[]>([]);
   const [selectedLineId, setSelectedLineId] = useState<number | null>(null);
+  const linesRef = useRef<UnifiedLine[]>([]);
+
+  useEffect(() => {
+    linesRef.current = lines;
+  }, [lines]);
 
   /**
    * Charger et parser le contenu ChordPro
@@ -16,10 +21,30 @@ export function useUnifiedSync() {
   const loadContent = useCallback((content: string) => {
     try {
       const parsed = parseChordPro(content);
-      setLines(parsed);
-      if (parsed.length > 0) {
-        setSelectedLineId(parsed[0].id);
-      }
+      const previousLines = linesRef.current;
+
+      // Preserve sync state by index when content is edited/reparsed.
+      const mergedLines = parsed.map((line, index) => {
+          const previous = previousLines[index];
+          if (!previous) return line;
+
+          return {
+            ...line,
+            timestamp: previous.timestamp,
+            isSynced: previous.isSynced,
+          };
+        });
+
+      linesRef.current = mergedLines;
+      setLines(mergedLines);
+
+      setSelectedLineId((previousSelectedId) => {
+        if (parsed.length === 0) return null;
+        if (previousSelectedId !== null && parsed.some((line) => line.id === previousSelectedId)) {
+          return previousSelectedId;
+        }
+        return parsed[0].id;
+      });
     } catch (error) {
       console.error("Erreur parsing ChordPro:", error);
     }
@@ -36,52 +61,57 @@ export function useUnifiedSync() {
    * Synchroniser une ligne avec un timestamp
    */
   const syncLine = useCallback((lineId: number, timestamp: number) => {
-    setLines((prev) =>
-      prev.map((line) =>
-        line.id === lineId
-          ? { ...line, timestamp, isSynced: true }
-          : line
-      )
+    const currentLines = linesRef.current;
+    const updated = currentLines.map((line) =>
+      line.id === lineId ? { ...line, timestamp, isSynced: true } : line
     );
-    // Auto-avancer au prochain non-synced
-    const nextUnsynced = lines.find((l) => !l.isSynced);
-    if (nextUnsynced) {
+
+    linesRef.current = updated;
+    setLines(updated);
+
+    const currentIndex = updated.findIndex((line) => line.id === lineId);
+    const nextUnsynced = updated
+      .slice(Math.max(currentIndex + 1, 0))
+      .find((line) => !line.isSynced) ?? updated.find((line) => !line.isSynced);
+
+    if (nextUnsynced && nextUnsynced.id !== lineId) {
       setSelectedLineId(nextUnsynced.id);
     }
-  }, [lines]);
+  }, []);
 
   /**
    * Effacer le timestamp d'une ligne
    */
   const clearTimestamp = useCallback((lineId: number) => {
-    setLines((prev) =>
-      prev.map((line) =>
+    const updated = linesRef.current.map((line) =>
         line.id === lineId
           ? { ...line, timestamp: null, isSynced: false }
           : line
-      )
     );
+
+    linesRef.current = updated;
+    setLines(updated);
   }, []);
 
   /**
    * Mettre à jour le timestamp manuellement
    */
   const updateTimestamp = useCallback((lineId: number, timestamp: number | null) => {
-    setLines((prev) =>
-      prev.map((line) =>
+    const updated = linesRef.current.map((line) =>
         line.id === lineId
           ? { ...line, timestamp, isSynced: timestamp !== null }
           : line
-      )
     );
+
+    linesRef.current = updated;
+    setLines(updated);
   }, []);
 
   /**
    * Mettre à jour le contenu (texte + accords) d'une ligne
    */
   const updateLineContent = useCallback((lineId: number, newContent: string) => {
-    setLines((prev) =>
-      prev.map((line) => {
+    const updated = linesRef.current.map((line) => {
         if (line.id === lineId) {
           const { strippedText, chords } = extractChords(newContent);
           return {
@@ -92,25 +122,34 @@ export function useUnifiedSync() {
           };
         }
         return line;
-      })
-    );
+      });
+
+    linesRef.current = updated;
+    setLines(updated);
   }, []);
 
   /**
    * Supprimer une ligne
    */
   const deleteLine = useCallback((lineId: number) => {
-    setLines((prev) => prev.filter((line) => line.id !== lineId));
+    const currentLines = linesRef.current;
+    const index = currentLines.findIndex((line) => line.id === lineId);
+    const filtered = currentLines.filter((line) => line.id !== lineId);
+
+    linesRef.current = filtered;
+    setLines(filtered);
+
     if (selectedLineId === lineId) {
-      const nextLine = lines.find((l) => l.id !== lineId);
-      setSelectedLineId(nextLine?.id ?? null);
+      const nextSelectedId = filtered[index]?.id ?? filtered[index - 1]?.id ?? null;
+      setSelectedLineId(nextSelectedId);
     }
-  }, [lines, selectedLineId]);
+  }, [selectedLineId]);
 
   /**
    * Vider la liste complète
    */
   const clearAll = useCallback(() => {
+    linesRef.current = [];
     setLines([]);
     setSelectedLineId(null);
   }, []);

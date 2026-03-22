@@ -2,14 +2,52 @@ import { useCallback } from "react";
 import { toLRC } from "@/utils/lrcSerializer";
 import { toJSON } from "@/utils/jsonSerializer";
 import { combinedToJSON } from "@/utils/chordsSerializer";
-import { generateSmartFileName } from "@/utils/detectChorus";
-import { LyricLine, ChordLine, UnifiedLine } from "@/types";
+import { LyricLine, ChordLine, UnifiedLine, ExportMetadata, UnifiedSong, UnifiedExportData } from "@/types";
 
 /**
  * Custom hook for exporting lyrics (and optionally chords)
  */
 
 export function useExport() {
+    const buildExportMeta = useCallback((metadata?: Partial<UnifiedSong> | ExportMetadata): ExportMetadata | undefined => {
+        if (!metadata) return undefined;
+
+        const meta: ExportMetadata = {
+            key: metadata.key,
+            bpm: metadata.bpm,
+            timeSignature: metadata.timeSignature,
+            about: metadata.about,
+        };
+
+        return Object.values(meta).some((value) => value !== undefined && value !== null && value !== "")
+            ? meta
+            : undefined;
+    }, []);
+
+    const createExportFilename = useCallback((format: 'json' | 'lrc', audioBaseName?: string) => {
+        const safeBaseName = audioBaseName?.trim() || 'synced-lyrics';
+        return `${safeBaseName}.${format}`;
+    }, []);
+
+    const toUnifiedLines = useCallback((lyrics: (LyricLine | UnifiedLine)[]): UnifiedLine[] => {
+        return lyrics.map((line) => {
+            if ('strippedText' in line) {
+                return line as UnifiedLine;
+            }
+
+            const legacyLine = line as LyricLine;
+            return {
+                id: legacyLine.id,
+                originalText: legacyLine.text,
+                strippedText: legacyLine.text,
+                chords: [],
+                timestamp: legacyLine.timestamp,
+                isSynced: legacyLine.isSynced,
+                isInstrumental: false,
+            };
+        });
+    }, []);
+
     // Convert an array of LyricLine or UnifiedLine objects into a string in the LRC format (lyrics only)
     const exportLRC = useCallback((lyrics: (LyricLine | UnifiedLine)[]) => {
         // Adapt UnifiedLine to LyricLine for LRC export
@@ -29,13 +67,10 @@ export function useExport() {
     }, []);
 
     // Convert an array of UnifiedLine to JSON (full structure)
-    const exportUnifiedJSON = useCallback((lines: UnifiedLine[], meta?: any) => {
-        const data = {
+    const exportUnifiedJSON = useCallback((lines: UnifiedLine[], meta?: ExportMetadata) => {
+        const data: UnifiedExportData = {
             meta,
-            lines: lines.map(line => ({
-                ...line,
-                timestamp: line.timestamp // Ensure timestamp is included
-            }))
+            lines: lines.map((line) => ({ ...line }))
         };
         return JSON.stringify(data, null, 2);
     }, []);
@@ -46,8 +81,8 @@ export function useExport() {
     }, []);
 
     // Export combiné lyrics + chords au format ExportData JSON
-    const exportCombinedJSON = useCallback((lyrics: LyricLine[], chords: ChordLine[], key?: string) => {
-        return combinedToJSON(lyrics, chords, key);
+    const exportCombinedJSON = useCallback((lyrics: LyricLine[], chords: ChordLine[], meta?: ExportMetadata) => {
+        return combinedToJSON(lyrics, chords, meta);
     }, []);
 
     // Download a file from a string
@@ -63,13 +98,6 @@ export function useExport() {
         URL.revokeObjectURL(url);
     }, []);
 
-    // Generate a default filename for the exported file
-    const generateFilename = useCallback((format: 'json' | 'lrc', lyrics?: LyricLine[]): string => {
-        const date = new Date().toISOString().slice(0, 10);
-        const baseName = lyrics ? generateSmartFileName(lyrics) : 'synced-lyrics';
-        return `${baseName}_${date}.${format}`;
-    }, []);
-
     /**
      * Export rapide — détecte automatiquement si des chords sont présents
      * - JSON → ExportData { lyrics, chords?, meta? }
@@ -80,7 +108,8 @@ export function useExport() {
         format: 'json' | 'lrc',
         options?: {
             chords?: ChordLine[]; // Legacy separate chords
-            musicalKey?: string;
+            metadata?: Partial<UnifiedSong> | ExportMetadata;
+            audioBaseName?: string;
             customName?: string;
         }
     ) => {
@@ -90,34 +119,24 @@ export function useExport() {
         }
 
         let content: string;
-        const isUnified = lyrics.length > 0 && 'strippedText' in lyrics[0];
 
         if (format === 'lrc') {
             // LRC = lyrics seulement (standard)
             content = exportLRC(lyrics);
         } else {
-            // JSON Export
-            if (isUnified) {
-                 // Unified JSON export
-                 const meta = {
-                     key: options?.musicalKey
-                 };
-                 content = exportUnifiedJSON(lyrics as UnifiedLine[], meta);
-            } else {
-                // Legacy JSON export (Split lyrics + chords)
-                const chords = options?.chords ?? [];
-                content = exportCombinedJSON(lyrics as LyricLine[], chords, options?.musicalKey);
-            }
+            const exportMeta = buildExportMeta(options?.metadata);
+            const unifiedLines = toUnifiedLines(lyrics);
+            content = exportUnifiedJSON(unifiedLines, exportMeta);
         }
 
-        const filename = options?.customName ?? generateFilename(format, lyrics);
+        const filename = options?.customName ?? createExportFilename(format, options?.audioBaseName);
         const mimeType = format === 'json' ? 'application/json' : 'text/plain';
 
         downloadFile(content, filename, mimeType);
 
         const syncedChords = options?.chords?.filter(c => c.isSynced).length ?? 0;
         return { filename, syncedCount: syncedLyrics, syncedChords };
-    }, [exportLRC, exportCombinedJSON, exportUnifiedJSON, downloadFile, generateFilename]);
+    }, [buildExportMeta, createExportFilename, exportLRC, exportUnifiedJSON, downloadFile, toUnifiedLines]);
 
     // Stats d'export (lyrics + chords)
     const getExportStats = useCallback((lyrics: (LyricLine | UnifiedLine)[], chords?: ChordLine[]) => {
@@ -148,7 +167,6 @@ export function useExport() {
         exportCombinedJSON,
         exportUnifiedJSON, // Expose new method
         downloadFile,
-        generateFilename,
         quickExport,
         getExportStats
     };

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useMemo, useRef } from 'react';
-import { FileText, Wand2, Zap, AlertCircle, Info, Settings2, CheckCircle2, Music } from "lucide-react";
+import {FileText, Wand2, Zap, AlertCircle, Info, Settings2, CheckCircle2, Music, AudioLines} from "lucide-react";
 import { UnifiedSong } from "@/types";
 import { parseChordPro, extractMetadata } from "@/utils/parseChordPro";
 import { isChordTokenSupported, parseChordSymbol } from "@/utils/parseChords";
@@ -85,6 +85,7 @@ const UnifiedInput: React.FC<UnifiedInputProps> = ({
     const [notation, setNotation] = useState<'english' | 'latin' | 'numerical'>('english');
     const [isInfoOpen, setIsInfoOpen] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const selectionRef = useRef({ start: 0, end: 0 });
 
     // --- LOGIQUE METADATA ---
 
@@ -179,19 +180,23 @@ const UnifiedInput: React.FC<UnifiedInputProps> = ({
         if (!textareaRef.current) return;
 
         const textarea = textareaRef.current;
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
+        const isFocused = document.activeElement === textarea;
+        const start = isFocused ? textarea.selectionStart : selectionRef.current.start;
+        const end = isFocused ? textarea.selectionEnd : selectionRef.current.end;
         const currentText = value;
         
         const newText = currentText.substring(0, start) + textToInsert + currentText.substring(end);
         onChange(newText);
 
+        const nextCursor = start + textToInsert.length;
+        selectionRef.current = { start: nextCursor, end: nextCursor };
+
         // Refocus et replacement du curseur
         requestAnimationFrame(() => {
             textarea.focus();
             textarea.setSelectionRange(
-                start + textToInsert.length,
-                start + textToInsert.length
+                nextCursor,
+                nextCursor
             );
         });
     };
@@ -253,44 +258,64 @@ const UnifiedInput: React.FC<UnifiedInputProps> = ({
                         </SelectContent>
                     </Select>
                 </div>
-            </div>
 
-            {/* Info Button - New Feature */}
-            <div className="col-span-1 lg:col-span-1 flex items-end">
-                <Dialog open={isInfoOpen} onOpenChange={setIsInfoOpen}>
-                    <DialogTrigger asChild>
-                        <Button
-                            variant="outline"
-                            size="lg"
-                            className="w-full h-9 border-white/10 bg-slate-950/60 text-slate-100 hover:bg-slate-800/80 hover:border-white/20 transition-colors"
-                            title="Informations sur le chant"
-                        >
-                            A propos du chant
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden rounded-xl border border-white/10 bg-slate-900/95 shadow-2xl backdrop-blur-xl">
-                        <DialogHeader className="px-6 py-4 border-b border-white/10 bg-slate-950/40">
-                            <DialogTitle className="text-base font-semibold tracking-tight text-slate-100">À propos du chant</DialogTitle>
-                        </DialogHeader>
-                        <div className="grid gap-4 px-6 py-5">
-                            <div className="space-y-2">
-                                <Label htmlFor="about" className="text-xs font-medium text-slate-300">Informations</Label>
-                                <Textarea
-                                    id="about"
-                                    value={metadata.about || ""}
-                                    onChange={(e) => updateMetadata("about", e.target.value)}
-                                    className="min-h-[200px] resize-none rounded-md border-white/10 bg-slate-950/60 text-slate-100 placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-purple-500/50"
-                                    placeholder={`Ce chant a été recu...`}
-                                />
-                            </div>
-                        </div>
-                        <DialogFooter className="px-6 py-4 border-t border-white/10 bg-slate-950/30">
-                            <Button className="bg-purple-600 hover:bg-purple-500 text-white" onClick={() => setIsInfoOpen(false)}>
-                                Terminer
+                {/* Info Button - First Position */}
+                <div className="col-span-1 lg:col-span-1">
+                    <Dialog open={isInfoOpen} onOpenChange={setIsInfoOpen}>
+                        <DialogTrigger asChild>
+                            <Button
+                                size="sm"
+                                className="w-full h-9 border-white/10 bg-gradient-to-br from-slate-950/60 to-slate-900/40 text-slate-100 hover:bg-gradient-to-br hover:from-slate-900/80 hover:to-slate-800/60 hover:border-purple-500/30 transition-all duration-200"
+                                title="À propos du chant"
+                            >
+                                <AudioLines className="h-4 w-4 text-purple-400" />
                             </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[500px] gap-0 p-0 overflow-hidden rounded-xl border border-white/10 bg-gradient-to-b from-slate-900 via-slate-900/95 to-slate-950 shadow-2xl backdrop-blur-xl z-50">
+                            {/* Décoration dégradé subtil en haut */}
+                            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
+
+                            <DialogHeader className="relative px-6 py-5 border-b border-white/5 bg-slate-950/30 backdrop-blur-sm">
+                                <div className="flex flex-col gap-1">
+                                    <DialogTitle className="text-lg font-semibold tracking-tight text-slate-100">À propos du chant</DialogTitle>
+                                </div>
+                            </DialogHeader>
+
+                            <div className="px-6 py-5 space-y-4 max-h-[60vh] overflow-y-auto">
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="about" className="text-sm font-medium text-slate-200">
+                                            Informations
+                                        </Label>
+                                        <span className="text-xs text-slate-500">
+                                            {(metadata.about || "").length}/750
+                                        </span>
+                                    </div>
+                                    <Textarea
+                                        id="about"
+                                        value={metadata.about || ""}
+                                        onChange={(e) => updateMetadata("about", e.target.value.slice(0, 500))}
+                                        maxLength={500}
+                                        className="h-[240px] max-h-[240px] resize-none rounded-lg border-white/10 bg-slate-950/50 text-slate-100 placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-purple-500/50 focus-visible:border-purple-500/30 transition-colors overflow-y-auto"
+                                        placeholder={`Ce chant a été reçu...`}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="px-6 py-4 border-t border-white/5 bg-slate-950/20 backdrop-blur-sm flex items-center justify-between">
+                                <span className="text-xs text-slate-500">
+                                    Ces informations enrichissent votre fiche chant
+                                </span>
+                                <Button
+                                    className="bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white shadow-lg shadow-purple-500/20 transition-all duration-200"
+                                    onClick={() => setIsInfoOpen(false)}
+                                >
+                                    Terminer
+                                </Button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                </div>
             </div>
 
 
@@ -326,6 +351,7 @@ const UnifiedInput: React.FC<UnifiedInputProps> = ({
                             variant="ghost"
                             size="sm"
                             className="h-7 text-xs px-2 text-muted-foreground hover:text-white hover:bg-white/5"
+                            onMouseDown={(e) => e.preventDefault()}
                             onClick={() => insertAtCursor(sec.value)}
                         >
                             {sec.label}
@@ -341,6 +367,7 @@ const UnifiedInput: React.FC<UnifiedInputProps> = ({
                             variant="secondary"
                             size="sm"
                             className="h-7 text-xs px-2 font-mono bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 border border-purple-500/20"
+                            onMouseDown={(e) => e.preventDefault()}
                             onClick={() => insertAtCursor(chord.value)}
                         >
                             {chord.label}
@@ -363,6 +390,24 @@ That [C]saved a [G]wretch like [C]me
 ...`}
                         value={value}
                         onChange={(e) => onChange(e.target.value)}
+                        onSelect={(e) => {
+                            selectionRef.current = {
+                                start: e.currentTarget.selectionStart,
+                                end: e.currentTarget.selectionEnd,
+                            };
+                        }}
+                        onKeyUp={(e) => {
+                            selectionRef.current = {
+                                start: e.currentTarget.selectionStart,
+                                end: e.currentTarget.selectionEnd,
+                            };
+                        }}
+                        onClick={(e) => {
+                            selectionRef.current = {
+                                start: e.currentTarget.selectionStart,
+                                end: e.currentTarget.selectionEnd,
+                            };
+                        }}
                     />
                     
                     {/* Stats Flottantes (Bottom Right) */}

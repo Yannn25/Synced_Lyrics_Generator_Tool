@@ -2,7 +2,7 @@
 
 import React from "react";
 import { FileJson, FileText, Download, Guitar } from "lucide-react";
-import { LyricLine, ChordLine, UnifiedLine } from "@/types";
+import { LyricLine, ChordLine, UnifiedLine, UnifiedSong } from "@/types";
 import { useExport } from "@/hooks/useExport";
 
 // Composants shadcn/ui
@@ -15,7 +15,8 @@ import { cn } from "@/lib/utils";
 interface ExportPanelProps {
   lyrics: (LyricLine | UnifiedLine)[];
   chords?: ChordLine[];
-  musicalKey?: string;
+  metadata?: Partial<UnifiedSong>;
+  audioBaseName?: string;
   exporter: ReturnType<typeof useExport>;
   /** Mode compact (pour intégration dans StepExport) */
   compact?: boolean;
@@ -35,7 +36,8 @@ interface ExportPanelProps {
 const ExportPanel: React.FC<ExportPanelProps> = ({
   lyrics,
   chords = [],
-  musicalKey,
+  metadata,
+  audioBaseName,
   exporter,
   compact = false,
   showCard = true
@@ -48,7 +50,8 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
     try {
       quickExport(lyrics, 'json', {
         chords: chords.length > 0 ? chords : undefined,
-        musicalKey,
+        metadata,
+        audioBaseName,
       });
     } catch (error) {
       console.error('Export JSON error:', error);
@@ -57,7 +60,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
 
   const handleExportLRC = () => {
     try {
-      quickExport(lyrics, 'lrc');
+      quickExport(lyrics, 'lrc', { audioBaseName });
     } catch (error) {
       console.error('Export LRC error:', error);
     }

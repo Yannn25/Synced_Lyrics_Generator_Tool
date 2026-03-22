@@ -26,6 +26,21 @@ const SECTION_MAPPINGS: Record<string, string> = {
     'final': 'Outro',
 };
 
+const KNOWN_SECTION_TYPES = new Set([
+  'Intro',
+  'Verse',
+  'Pre-Chorus',
+  'Chorus',
+  'Bridge',
+  'Outro',
+  'Instrumental',
+  'Solo',
+]);
+
+function isLikelyChordToken(value: string): boolean {
+  return /^(?:[A-G](?:#|b)?|Do|Re|Mi|Fa|Sol|La|Si)(?:m|maj|min|dim|aug|sus|add|[0-9]|\/|b|#|\(|\)|\+|-)*$/i.test(value.trim());
+}
+
 /**
  * Normalise un nom de section brut (ex: "Couplet 1", "Verse 2", "[Refrain]")
  * vers un type standardisé.
@@ -78,8 +93,23 @@ export function normalizeSectionName(rawName: string): string {
  */
 export function isSectionHeader(text: string): boolean {
     const trimmed = text.trim();
+
+    const bracketMatch = trimmed.match(/^\[(.+)]$/);
+    if (bracketMatch) {
+        const inner = bracketMatch[1].trim();
+
+        // [C], [Am], [G/B], [Do] are chord tokens, not section headers.
+        if (isLikelyChordToken(inner)) {
+            return false;
+        }
+
+        const normalized = normalizeSectionName(inner);
+        const canonical = normalized.replace(/\s+\d+$/, '');
+        return KNOWN_SECTION_TYPES.has(canonical);
+    }
+
     // Simplification Regex : échappement minimal
-    return /^\[.*]$/.test(trimmed) || /^{.*}$/.test(trimmed) || /:$/.test(trimmed);
+    return /^{.*}$/.test(trimmed) || /:$/.test(trimmed);
 }
 
 /**

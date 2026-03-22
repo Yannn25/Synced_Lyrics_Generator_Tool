@@ -16,13 +16,17 @@ export function useAudio() {
       isLoaded: false,
     });
     const [error, setError] = useState<string | null>(null);
+    const [audioBaseName, setAudioBaseName] = useState<string>("");
   
     // Load audio file
     const loadAudio = useCallback((file: File) => {
         const url = URL.createObjectURL(file);
+        const baseName = file.name.replace(/\.[^/.]+$/, '').trim();
+
         if (audioRef.current) {
             audioRef.current.src = url;
             setError(null);
+            setAudioBaseName(baseName || 'synced-lyrics');
         }
     }, []);
 
@@ -120,6 +124,7 @@ export function useAudio() {
     return {
         audioRef,
         ...state,
+        audioBaseName,
         error,
         loadAudio,
         play,

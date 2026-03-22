@@ -1,4 +1,4 @@
-import { ChordLine, LyricLine, ExportData } from "@/types";
+import { ChordLine, LyricLine, ExportData, ExportMetadata } from "@/types";
 
 /**
  * Convertit les lignes d'accords en format exportable
@@ -34,7 +34,7 @@ export function chordsToJSON(chords: ChordLine[]): string {
  * Export combiné lyrics + chords en ExportData
  * Les deux sont optionnels : fonctionne avec lyrics seules, chords seuls, ou les deux
  */
-export function combinedToExport(lyrics: LyricLine[], chords: ChordLine[], key?: string): ExportData {
+export function combinedToExport(lyrics: LyricLine[], chords: ChordLine[], meta?: ExportMetadata): ExportData {
   const lyricsExport = lyrics
     .filter(l => l.isSynced && l.timestamp !== null)
     .sort((a, b) => a.timestamp! - b.timestamp!)
@@ -47,9 +47,9 @@ export function combinedToExport(lyrics: LyricLine[], chords: ChordLine[], key?:
     chords: chordsExport && chordsExport.length > 0 ? chordsExport : undefined,
   };
 
-  // Ajoute les métadonnées si au moins une est présente
-  if (key) {
-    data.meta = { key };
+  // Ajoute les metadonnees si au moins une est presente
+  if (meta && Object.values(meta).some((value) => value !== undefined && value !== null && value !== '')) {
+    data.meta = meta;
   }
 
   return data;
@@ -58,8 +58,8 @@ export function combinedToExport(lyrics: LyricLine[], chords: ChordLine[], key?:
 /**
  * Export combiné en JSON string
  */
-export function combinedToJSON(lyrics: LyricLine[], chords: ChordLine[], key?: string): string {
-  const data = combinedToExport(lyrics, chords, key);
+export function combinedToJSON(lyrics: LyricLine[], chords: ChordLine[], meta?: ExportMetadata): string {
+  const data = combinedToExport(lyrics, chords, meta);
   return JSON.stringify(data, null, 2);
 }
 
