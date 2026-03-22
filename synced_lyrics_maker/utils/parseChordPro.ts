@@ -74,7 +74,7 @@ export function parseChordPro(text: string): UnifiedLine[] {
             continue;
         }
 
-        // Check for section
+        // Check for section header (e.g. {Verse}, [Intro], etc.)
         if (isSectionHeader(trimmedLine)) {
             currentSection = extractSectionName(trimmedLine);
             continue; // Sections are not lyric lines themselves in this model
@@ -83,7 +83,11 @@ export function parseChordPro(text: string): UnifiedLine[] {
         // Parse chords and strip text
         const { strippedText, chords } = extractChords(trimmedLine);
         
-        // Create UnifiedLine
+        // Déterminer si c'est une ligne purement instrumentale
+        const isInstrumental = chords.length > 0 && strippedText.trim().length === 0;
+        
+        // IMPORTANT: We always create a UnifiedLine, even if it's instrumental
+        // This ensures chord-only lines are included in the sync list
         const unifiedLine: UnifiedLine = {
             id: lineIdCounter++,
             originalText: trimmedLine,
@@ -91,7 +95,8 @@ export function parseChordPro(text: string): UnifiedLine[] {
             chords: chords,
             section: currentSection || undefined,
             timestamp: null,
-            isSynced: false
+            isSynced: false,
+            isInstrumental
         };
 
         unifiedLines.push(unifiedLine);

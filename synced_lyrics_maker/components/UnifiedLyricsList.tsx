@@ -171,6 +171,31 @@ const UnifiedLyricsList: React.FC<UnifiedLyricsListProps> = ({
     const renderLineContent = (line: UnifiedLine) => {
         const { strippedText, chords } = line;
         
+        // Cas spécial : ligne purement instrumentale (accords seuls)
+        if (line.isInstrumental) {
+            return (
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                        <Badge className="text-xs bg-amber-500/20 text-amber-300 border-amber-500/30 font-medium">
+                            🎸 Instrumental
+                        </Badge>
+                        <span className="text-xs text-slate-400">Accords uniquement</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                        {chords.map((chord, i) => (
+                            <span 
+                                key={i} 
+                                className="text-purple-400 font-bold text-xs bg-purple-500/10 px-2 py-1 rounded border border-purple-500/20"
+                            >
+                                {chord.symbol}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // Cas normal : texte avec accords
         if (!chords || chords.length === 0) {
              return <span className="text-foreground/80">{strippedText}</span>;
         }
@@ -282,73 +307,87 @@ const UnifiedLyricsList: React.FC<UnifiedLyricsListProps> = ({
                                         isEditing && "bg-blue-500/10 border-blue-500/30"
                                     )}
                                 >
-                                    <div className="flex items-center gap-3">
-                                        {/* Numéro de ligne */}
-                                        <span className={cn(
-                                            "flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold",
-                                            isSelected
-                                                ? "bg-primary text-primary-foreground"
-                                                : line.isSynced
-                                                    ? "bg-green-500/20 text-green-400"
-                                                    : "bg-slate-700/50 text-muted-foreground"
-                                        )}>
-                                            {index + 1}
-                                        </span>
+                    <div className="flex items-center gap-3">
+                        {/* Numéro de ligne */}
+                        <span className={cn(
+                            "flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold",
+                            isSelected
+                                ? "bg-primary text-primary-foreground"
+                                : line.isSynced
+                                    ? "bg-green-500/20 text-green-400"
+                                    : "bg-slate-700/50 text-muted-foreground"
+                        )}>
+                            {index + 1}
+                        </span>
 
-                                        {/* Texte de la ligne (éditable ou non) */}
-                                        <div className="flex-1 min-w-0">
-                                            {isEditing ? (
-                                                <div className="flex items-center gap-2">
-                                                    <Input
-                                                        ref={editInputRef}
-                                                        value={editText}
-                                                        onChange={(e) => setEditText(e.target.value)}
-                                                        onKeyDown={handleEditKeyDown}
-                                                        onBlur={saveEdit}
-                                                        placeholder="[C] Lyrics..."
-                                                        className="h-8 text-sm bg-slate-900/50 border-white/20 font-mono"
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    />
-                                                    <TooltipProvider>
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    onClick={(e) => { e.stopPropagation(); saveEdit(); }}
-                                                                    className="h-8 w-8 p-0 text-green-400 hover:text-green-300"
-                                                                >
-                                                                    <Check className="h-4 w-4" />
-                                                                </Button>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>Sauvegarder (Entrée)</TooltipContent>
-                                                        </Tooltip>
-                                                    </TooltipProvider>
-                                                    <TooltipProvider>
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    onClick={(e) => { e.stopPropagation(); cancelEdit(); }}
-                                                                    className="h-8 w-8 p-0 text-red-400 hover:text-red-300"
-                                                                >
-                                                                    <X className="h-4 w-4" />
-                                                                </Button>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>Annuler (Échap)</TooltipContent>
-                                                        </Tooltip>
-                                                    </TooltipProvider>
-                                                </div>
-                                            ) : (
-                                                <div className={cn(
-                                                    "text-sm",
-                                                    isSelected ? "text-foreground font-medium" : "text-foreground/80"
-                                                )}>
-                                                    {renderLineContent(line)}
-                                                </div>
-                                            )}
-                                        </div>
+                        {/* Section badge (AMÉLIORÉ) */}
+                        {line.section && (
+                            <Badge
+                                className={cn(
+                                    "text-xs font-semibold px-2 py-0.5",
+                                    line.isInstrumental
+                                        ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                                        : "bg-blue-500/20 text-blue-300 border-blue-500/30"
+                                )}
+                            >
+                                {line.isInstrumental ? "🎸" : "♪"} {line.section}
+                            </Badge>
+                        )}
+
+                        {/* Texte de la ligne (éditable ou non) */}
+                        <div className="flex-1 min-w-0">
+                            {isEditing ? (
+                                <div className="flex items-center gap-2">
+                                    <Input
+                                        ref={editInputRef}
+                                        value={editText}
+                                        onChange={(e) => setEditText(e.target.value)}
+                                        onKeyDown={handleEditKeyDown}
+                                        onBlur={saveEdit}
+                                        placeholder="[C] Lyrics..."
+                                        className="h-8 text-sm bg-slate-900/50 border-white/20 font-mono"
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={(e) => { e.stopPropagation(); saveEdit(); }}
+                                                    className="h-8 w-8 p-0 text-green-400 hover:text-green-300"
+                                                >
+                                                    <Check className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>Sauvegarder (Entrée)</TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={(e) => { e.stopPropagation(); cancelEdit(); }}
+                                                    className="h-8 w-8 p-0 text-red-400 hover:text-red-300"
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>Annuler (Échap)</TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
+                            ) : (
+                                <div className={cn(
+                                    "text-sm",
+                                    isSelected ? "text-foreground font-medium" : "text-foreground/80"
+                                )}>
+                                    {renderLineContent(line)}
+                                </div>
+                            )}
+                        </div>
 
                                         {/* Actions et timestamp */}
                                         {!isEditing && (

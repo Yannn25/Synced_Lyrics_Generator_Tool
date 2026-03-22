@@ -5,30 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Music, FileText, CheckCircle2, Zap, Wand2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AudioPlayer from "@/components/AudioPlayer";
+import UnifiedInput from "@/components/UnifiedInput"; // Import du nouveau composant
 import { useAudio } from "@/hooks/useAudio";
 import { cn } from "@/lib/utils";
 import { stepVariants, stepTransition } from "@/lib/animations";
 import { UnifiedSong } from "@/types";
-import { KEY_OPTIONS } from "@/utils/chordNotation";
-import { extractMetadata, parseChordPro } from "@/utils/parseChordPro";
-
-// Time signature options
-const TIME_SIGNATURES = ["4/4", "3/4", "2/4", "6/8", "12/8"];
-
-// Common chord progressions or sections to insert
-const QUICK_INSERTS = [
-	{ label: "{Verse}", value: "\n{Verse}\n" },
-	{ label: "{Chorus}", value: "\n{Chorus}\n" },
-	{ label: "[C]", value: "[C]" },
-	{ label: "[G]", value: "[G]" },
-	{ label: "[Am]", value: "[Am]" },
-	{ label: "[F]", value: "[F]" },
-];
 
 interface StepInputProps {
 	audio: ReturnType<typeof useAudio>;
@@ -40,11 +22,7 @@ interface StepInputProps {
 /**
  * StepInput - Étape 1 : Éditeur Unifié (ChordPro)
  *
- * Permet de charger l'audio et de saisir les paroles/accords au format ChordPro.
- * Comprend :
- * 1. Bloc Métadonnées (BPM, Key, TimeSig)
- * 2. Éditeur Texte Principal
- * 3. Outils d'aide (Détection d'accords, Insertions rapides)
+ * Intègre maintenant UnifiedInput pour une expérience d'édition améliorée.
  */
 export default function StepInput({
 	audio,
@@ -54,53 +32,7 @@ export default function StepInput({
 }: StepInputProps) {
 	const [isDragging, setIsDragging] = useState(false);
 
-	// 1. Détection des accords présents dans le texte
-	const detectedChords = useMemo(() => {
-		if (!songData?.content) return [];
-		try {
-			const lines = parseChordPro(songData.content);
-			const chords = new Set<string>();
-			lines.forEach((line) => {
-				line.chords.forEach((c) => chords.add(c.symbol));
-			});
-			return Array.from(chords).sort();
-		} catch (e) {
-			return [];
-		}
-	}, [songData?.content]);
-
-	// 2. Gestion des champs
-	const updateField = (field: keyof UnifiedSong, value: any) => {
-		onSongDataChange({ ...songData, [field]: value });
-	};
-
-	// 4. Insertion de texte au curseur
-	const insertAtCursor = (textToInsert: string) => {
-		const textarea = document.getElementById(
-			"chordpro-editor"
-		) as HTMLTextAreaElement;
-		if (textarea) {
-			const start = textarea.selectionStart;
-			const end = textarea.selectionEnd;
-			const text = songData.content;
-			const newText =
-				text.substring(0, start) + textToInsert + text.substring(end);
-			updateField("content", newText);
-
-			// Refocus et replacement du curseur
-			requestAnimationFrame(() => {
-				textarea.focus();
-				textarea.setSelectionRange(
-					start + textToInsert.length,
-					start + textToInsert.length
-				);
-			});
-		} else {
-			updateField("content", songData.content + textToInsert);
-		}
-	};
-
-	// 5. Validation pour continuer
+	// Validation pour continuer
 	const isContentReady = songData?.content?.trim().length > 0;
 	const canContinue = audio.isLoaded && isContentReady;
 
@@ -202,8 +134,8 @@ export default function StepInput({
 			</div>
 
 			<div className="flex flex-col xl:flex-row gap-6">
-				{/* Audio Player Card */}
-				<div className="rounded-xl overflow-hidden glass shadow-lg">
+				{/* Audio Player Card - Full width on mobile/tablet */}
+				<div className="xl:hidden rounded-xl overflow-hidden glass shadow-lg">
 					<AudioPlayer
 						audio={audio}
 						onSyncLine={() => {}}
@@ -212,152 +144,36 @@ export default function StepInput({
 				</div>
 			</div>
 
-			<div className="flex flex-col xl:flex-row gap-6">
-				{/* LEFT COLUMN: EDITOR & METADATA (2/3 width on desktop) */}
-				<div className="flex-1 flex flex-col gap-4">
-					{/* 1. Bloc Métadonnées (Haut) */}
-					<div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-900/40 border border-white/10">
-						<div className="space-y-2 col-span-2 md:col-span-1">
-							<Label
-								htmlFor="bpm"
-								className="text-xs text-muted-foreground"
-							>
-								BPM (Tempo)
-							</Label>
-							<div className="relative">
-								<Input
-									id="bpm"
-									type="number"
-									placeholder="120"
-									className="bg-slate-950/50 border-white/10 pl-8"
-									value={songData.bpm || ""}
-									onChange={(e) =>
-										updateField(
-											"bpm",
-											parseInt(e.target.value) || 0
-										)
-									}
-								/>
-							</div>
-						</div>
+			<div className="flex flex-col xl:flex-row gap-6 h-[calc(100vh-250px)] min-h-[600px]">
+				{/* LEFT COLUMN: UNIFIED EDITOR (2/3 width) */}
+				<div className="flex-[2] flex flex-col gap-4 min-h-0 bg-transparent">
+					<UnifiedInput 
+						value={songData.content}
+						onChange={(content) => onSongDataChange({ ...songData, content })}
+						metadata={songData}
+						onMetadataChange={onSongDataChange}
+						isAudioLoaded={audio.isLoaded}
+					/>
+				</div>
 
-						<div className="space-y-2 col-span-2 md:col-span-1">
-							<Label className="text-xs text-muted-foreground">
-								Signature
-							</Label>
-							<Select
-								value={songData.timeSignature}
-								onValueChange={(v) =>
-									updateField("timeSignature", v)
-								}
-							>
-								<SelectTrigger className="bg-slate-950/50 border-white/10">
-									<SelectValue placeholder="4/4" />
-								</SelectTrigger>
-								<SelectContent>
-									{TIME_SIGNATURES.map((sig) => (
-										<SelectItem key={sig} value={sig}>
-											{sig}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
-
-						<div className="space-y-2 col-span-2 md:col-span-1">
-							<Label className="text-xs text-muted-foreground">
-								Tonalité (Key)
-							</Label>
-							<Select
-								value={songData.key}
-								onValueChange={(v) => updateField("key", v)}
-							>
-								<SelectTrigger className="bg-slate-950/50 border-white/10">
-									<SelectValue placeholder="C" />
-								</SelectTrigger>
-								<SelectContent>
-									{KEY_OPTIONS.map((opt) => (
-										<SelectItem key={opt.value} value={opt.value}>
-											{opt.label}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
-
-					</div>
-
-					{/* 2. Bloc Éditeur (Centre) */}
-					<div className="flex-1 relative group">
-						<Textarea
-							id="chordpro-editor"
-							className="min-h-[400px] font-mono text-sm leading-relaxed bg-slate-950/30 border-white/10 resize-none p-6"
-							placeholder={`{Intro}
-[C]Amazing [G]Grace, how [Am]sweet the [F]sound
-
-{Verse 1}
-[C]Amazing [G]Grace, how [Am]sweet the [F]sound
-That [C]saved a [G]wretch like [C]me`}
-							value={songData.content}
-							onChange={(e) => updateField("content", e.target.value)}
+				{/* RIGHT COLUMN: AUDIO PLAYER (Desktop) & INSTRUCTIONS (1/3 width) */}
+				<div className="flex-1 flex flex-col gap-4 min-h-0 overflow-y-auto pr-1">
+					{/* Audio Player (Desktop only) */}
+					<div className="hidden xl:block rounded-xl overflow-hidden glass shadow-lg shrink-0">
+						<AudioPlayer
+							audio={audio}
+							onSyncLine={() => {}}
+							canSync={false}
 						/>
 					</div>
 
-					{/* 3. Bloc "Accords & Aide" (Bas) */}
-					<div className="p-4 rounded-xl bg-slate-900/40 border border-white/10 space-y-4">
-						{/* Detected Chords */}
-						<div className="flex items-center gap-2 flex-wrap min-h-[32px]">
-							<span className="text-xs font-semibold text-muted-foreground mr-2">
-								Détectés:
-							</span>
-							{detectedChords.length > 0 ? (
-								detectedChords.map((chord) => (
-									<Badge
-										key={chord}
-										variant="secondary"
-										className="font-mono text-xs bg-purple-500/10 text-purple-300 border-purple-500/20"
-									>
-										{chord}
-									</Badge>
-								))
-							) : (
-								<span className="text-xs italic text-slate-600">
-									Aucun accord détecté (format [C])
-								</span>
-							)}
-						</div>
-
-						<div className="h-px bg-white/5 w-full" />
-
-						{/* Quick Inserts */}
-						<div className="flex items-center gap-2 flex-wrap">
-							<span className="text-xs font-semibold text-muted-foreground mr-2">
-								Insérer:
-							</span>
-							{QUICK_INSERTS.map((item) => (
-								<Button
-									key={item.label}
-									variant="ghost"
-									size="sm"
-									className="h-7 text-xs bg-slate-800/50 border border-white/5 hover:bg-slate-700"
-									onClick={() => insertAtCursor(item.value)}
-								>
-									{item.label}
-								</Button>
-							))}
-						</div>
-					</div>
-				</div>
-
-				{/* RIGHT COLUMN: AUDIO PLAYER & INSTRUCTIONS (1/3 width) */}
-				<div className="w-full xl:w-80 flex flex-col gap-4">
 					{/* Continue Button */}
 					<Button
 						size="lg"
 						className={cn(
-							"w-full transition-all duration-300",
+							"w-full transition-all duration-300 shrink-0",
 							canContinue
-								? "bg-gradient-to-r from-primary to-primary-light hover:scale-[1.02] shadow-lg shadow-primary/20"
+								? "bg-primary hover:scale-[1.02] shadow-lg shadow-primary/20"
 								: "opacity-50 cursor-not-allowed"
 						)}
 						disabled={!canContinue}
@@ -367,15 +183,26 @@ That [C]saved a [G]wretch like [C]me`}
 					</Button>
 
 					{/* Instructions / Tips */}
-					<div className="p-4 rounded-xl bg-slate-900/20 border border-white/5 text-xs text-muted-foreground space-y-2">
+					<div className="p-4 rounded-xl bg-slate-900/40 border border-white/5 text-xs text-muted-foreground space-y-3 shrink-0">
 						<h4 className="font-semibold text-foreground flex items-center gap-2">
 							<CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-							Format ChordPro
+							Format ChordPro Supporté
+						</h4>
+						<div className="space-y-2">
+							<div className="p-2 bg-slate-950/50 rounded border border-white/5">
+								<code className="text-purple-300">[C]</code> <span className="text-slate-400">Amazing</span> <code className="text-purple-300">[G]</code> <span className="text-slate-400">Grace</span>
+							</div>
+							<p>Les accords doivent être entre crochets, placés juste devant la syllabe concernée.</p>
+						</div>
+						
+						<h4 className="font-semibold text-foreground mt-4 flex items-center gap-2">
+							<Zap className="w-3.5 h-3.5 text-yellow-500" />
+							Fonctionnalités
 						</h4>
 						<ul className="list-disc list-inside space-y-1 ml-1 opacity-80">
-							<li>Utilisez <code>[Accord]</code> devant le mot.</li>
-							<li>Utilisez <code>{`{Section}`}</code> pour structurer.</li>
-							<li>Le BPM peut être détecté depuis les tags <code>{`{bpm: 120}`}</code>.</li>
+							<li><strong className="text-white">Auto-Scan</strong> : Détecte automatiquement Titre, BPM et Key dans le texte.</li>
+							<li><strong className="text-white">Insertion Rapide</strong> : Utilisez la barre d'outils pour ajouter des accords ou sections.</li>
+							<li><strong className="text-white">Notation</strong> : Choisissez entre Anglais (C), Latin (Do) ou Nashville (1).</li>
 						</ul>
 					</div>
 				</div>

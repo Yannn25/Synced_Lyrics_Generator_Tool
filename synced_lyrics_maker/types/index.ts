@@ -189,7 +189,7 @@ export interface CombinedViewProps {
 
 // Interface pour le format unifié
 export interface UnifiedSong {
-    title: string;
+    about?: string;       // A propos du chant
     bpm: number;
     timeSignature: string; // Ex: "4/4"
     key: string;           // Ex: "C"
@@ -204,9 +204,10 @@ export interface ChordPosition {
 export interface UnifiedLine {
     id: number;
     originalText: string; // La ligne complète avec balises [C]
-    strippedText: string; // Le texte sans les accords pour l'affichage Clean
+    strippedText: string; // Le texte sans les accords pour l'affichage Clean (vide pour instrumentales)
     chords: ChordPosition[];
-    section?: string;     // "Verse", "Chorus", ...
+    section?: string;     // "Verse", "Chorus", "Intro", ...
     timestamp: number | null;
     isSynced: boolean;
+    isInstrumental?: boolean; // true si la ligne ne contient que des accords (strippedText vide)
 }
