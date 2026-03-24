@@ -12,12 +12,12 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
-      include: ["hooks/**", "utils/**", "components/**"],
+      include: ["src/hooks/**", "src/utils/**", "src/components/**"],
     },
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./"),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
 });
