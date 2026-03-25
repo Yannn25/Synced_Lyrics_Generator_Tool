@@ -61,7 +61,7 @@ export default function StepHelpModal({ step, className }: StepHelpModalProps) {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="modal-fullscreen-mobile sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="modal-fullscreen-mobile sm:max-w-md max-h-[25vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Keyboard className="h-4 w-4 text-primary" />

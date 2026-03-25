@@ -324,8 +324,89 @@ const UnifiedInput: React.FC<UnifiedInputProps> = ({
                 "flex-1 flex flex-col overflow-hidden border-white/10 bg-slate-900/40 backdrop-blur-xl shadow-lg",
                 isAudioLoaded && stats.lines > 0 && "border-green-500/20 shadow-green-500/5"
             )}>
-                {/* Toolbar Rapide */}
-                <div className="flex items-center gap-2 p-2 border-b border-white/5 bg-slate-950/30 overflow-x-auto no-scrollbar">
+
+                {/* Header Status Bar */}
+                <div className="px-4 py-2 bg-slate-950/50 border-t border-white/5 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-4">
+                        {stats.totalChords > 0 && (
+                            <div className={cn("flex items-center gap-2", stats.invalidChords > 0 ? "text-amber-400" : "text-purple-400")}>
+                                <Zap className="w-3.5 h-3.5" />
+                                <span>{stats.totalChords} accords</span>
+                                {stats.invalidChords > 0 && (
+                                    <span className="opacity-80">({stats.invalidChords} non reconnus)</span>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        {isAudioLoaded && stats.lines > 0 ? (
+                            <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20 h-5 px-2 text-[10px]">
+                                <CheckCircle2 className="w-3 h-3 mr-1" />
+                                Prêt pour Synchro
+                            </Badge>
+                        ) : (
+                            <span className="text-muted-foreground flex items-center gap-1">
+                                <Info className="w-3.5 h-3.5" />
+                                {stats.lines === 0 ? "En attente de contenu..." : "Audio requis"}
+                            </span>
+                        )}
+                    </div>
+                </div>
+                <div className="relative flex-1 flex flex-col group min-h-0">
+                    <Textarea
+                        ref={textareaRef}
+                        className="flex-1 w-full rounded-none border-0 bg-transparent p-6 font-mono text-sm leading-relaxed resize-none focus-visible:ring-0 placeholder:text-slate-600"
+                        placeholder={`{Title: Amazing Grace}
+{Key: C}
+{BPM: 100}
+
+[C]Amazing [G]Grace, how [Am]sweet the [F]sound
+That [C]saved a [G]wretch like [C]me
+
+{Verse 2}
+...`}
+                        value={value}
+                        onChange={(e) => onChange(e.target.value)}
+                        onSelect={(e) => {
+                            selectionRef.current = {
+                                start: e.currentTarget.selectionStart,
+                                end: e.currentTarget.selectionEnd,
+                            };
+                        }}
+                        onKeyUp={(e) => {
+                            selectionRef.current = {
+                                start: e.currentTarget.selectionStart,
+                                end: e.currentTarget.selectionEnd,
+                            };
+                        }}
+                        onClick={(e) => {
+                            selectionRef.current = {
+                                start: e.currentTarget.selectionStart,
+                                end: e.currentTarget.selectionEnd,
+                            };
+                        }}
+                    />
+                    
+                    {/* Stats Flottantes (Bottom Right) */}
+                    <div className="absolute bottom-6 right-6 flex items-center gap-3 pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity duration-300">
+                         <div className="bg-slate-950/80 backdrop-blur rounded px-2 py-1 text-[10px] text-muted-foreground border border-white/5 shadow-xl">
+                            {stats.lines} lignes
+                        </div>
+                        <div className="bg-slate-950/80 backdrop-blur rounded px-2 py-1 text-[10px] text-muted-foreground border border-white/5 shadow-xl">
+                            {stats.chars} car.
+                        </div>
+                        {stats.invalidChords > 0 && (
+                             <div className="bg-red-500/20 backdrop-blur rounded px-2 py-1 text-[10px] text-red-300 border border-red-500/20 shadow-xl flex items-center gap-1">
+                                <AlertCircle className="w-3 h-3" />
+                                {stats.invalidChords} invalides
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Toolbar Rapide - Positionnée en bas */}
+                <div className="flex items-center gap-2 p-2 border-t border-white/5 bg-slate-950/30 overflow-x-auto no-scrollbar">
                     {/* Selecteur de notation pour l'insertion */}
                     <Select
                         value={notation}
@@ -374,87 +455,8 @@ const UnifiedInput: React.FC<UnifiedInputProps> = ({
                         </Button>
                     ))}
                 </div>
-                
-                <div className="relative flex-1 group">
-                    <Textarea
-                        ref={textareaRef}
-                        className="absolute inset-0 w-full h-full rounded-none border-0 bg-transparent p-6 font-mono text-sm leading-relaxed focus-visible:ring-0 placeholder:text-slate-600"
-                        placeholder={`{Title: Amazing Grace}
-{Key: C}
-{BPM: 100}
 
-[C]Amazing [G]Grace, how [Am]sweet the [F]sound
-That [C]saved a [G]wretch like [C]me
 
-{Verse 2}
-...`}
-                        value={value}
-                        onChange={(e) => onChange(e.target.value)}
-                        onSelect={(e) => {
-                            selectionRef.current = {
-                                start: e.currentTarget.selectionStart,
-                                end: e.currentTarget.selectionEnd,
-                            };
-                        }}
-                        onKeyUp={(e) => {
-                            selectionRef.current = {
-                                start: e.currentTarget.selectionStart,
-                                end: e.currentTarget.selectionEnd,
-                            };
-                        }}
-                        onClick={(e) => {
-                            selectionRef.current = {
-                                start: e.currentTarget.selectionStart,
-                                end: e.currentTarget.selectionEnd,
-                            };
-                        }}
-                    />
-                    
-                    {/* Stats Flottantes (Bottom Right) */}
-                    <div className="absolute bottom-4 right-6 flex items-center gap-3 pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity duration-300">
-                         <div className="bg-slate-950/80 backdrop-blur rounded px-2 py-1 text-[10px] text-muted-foreground border border-white/5 shadow-xl">
-                            {stats.lines} lignes
-                        </div>
-                        <div className="bg-slate-950/80 backdrop-blur rounded px-2 py-1 text-[10px] text-muted-foreground border border-white/5 shadow-xl">
-                            {stats.chars} car.
-                        </div>
-                        {stats.invalidChords > 0 && (
-                             <div className="bg-red-500/20 backdrop-blur rounded px-2 py-1 text-[10px] text-red-300 border border-red-500/20 shadow-xl flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3" />
-                                {stats.invalidChords} invalides
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Footer Status Bar */}
-                <div className="px-4 py-2 bg-slate-950/50 border-t border-white/5 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-4">
-                        {stats.totalChords > 0 && (
-                            <div className={cn("flex items-center gap-2", stats.invalidChords > 0 ? "text-amber-400" : "text-purple-400")}>
-                                <Zap className="w-3.5 h-3.5" />
-                                <span>{stats.totalChords} accords</span>
-                                {stats.invalidChords > 0 && (
-                                    <span className="opacity-80">({stats.invalidChords} non reconnus)</span>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                        {isAudioLoaded && stats.lines > 0 ? (
-                            <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20 h-5 px-2 text-[10px]">
-                                <CheckCircle2 className="w-3 h-3 mr-1" />
-                                Prêt pour Synchro
-                            </Badge>
-                        ) : (
-                            <span className="text-muted-foreground flex items-center gap-1">
-                                <Info className="w-3.5 h-3.5" />
-                                {stats.lines === 0 ? "En attente de contenu..." : "Audio requis"}
-                            </span>
-                        )}
-                    </div>
-                </div>
             </Card>
         </div>
     );

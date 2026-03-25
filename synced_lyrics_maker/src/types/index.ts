@@ -24,16 +24,7 @@ export type SyncedLyricsJSON = SyncedLyricItem[];
 // Type for the LRC format who will be exported(simple string with a specific format)
 export type LRCFormat = string;
 
-// Props for the LyricsList component
-export type LyricsListProps = {
-    lyrics: LyricLine[]; // Array of lyric lines to display
-    selectedLineId: number | null; // ID of the lyric line currently selected
-    onSelectLine: (lineId: number) => void; // Function to call when a lyric line is selected
-    onClearTimestamp: (lineId: number) => void; // Function to call when a lyric line's timestamp is cleared
-    onUpdateTimestamp: (lineId: number, timestamp: number | null) => void; // Function to call when a lyric line's timestamp is updated
-    onUpdateLineText: (lineId: number, newText: string) => void; // Function to call when a lyric line text is updated
-    onDeleteLine: (lineId: number) => void; // Function to call when a lyric line is deleted
-}
+
 
 export interface AudioState {
   isPlaying: boolean;
@@ -151,18 +142,7 @@ export interface UnifiedExportData {
   lines: UnifiedExportLine[];
 }
 
-// ═══════════════════════════════════════════════════════
-// TYPE GÉNÉRIQUE POUR LA SYNCHRONISATION
-// ═══════════════════════════════════════════════════════
 
-// Interface commune pour lyrics ET chords (mutualisation)
-// Note: Migration vers string ID recommandée pour LyricLine aussi
-export interface SyncableItem {
-  id: string | number;
-  timestamp: number | null;
-  isSynced: boolean;
-  isEditing: boolean;
-}
 
 // ═══════════════════════════════════════════════════════
 // MODES D'AFFICHAGE
@@ -174,33 +154,7 @@ export type SyncMode = 'lyrics' | 'chords';
 
 export type ChordNotation = 'english' | 'latin' | 'numerical';
 
-// ═══════════════════════════════════════════════════════
-// PROPS DES COMPOSANTS CHORDS
-// ═══════════════════════════════════════════════════════
 
-export interface ChordsListProps {
-  chords: ChordLine[];
-  selectedChordId: number | null;
-  onSelectChord: (chordId: number) => void;
-  onClearTimestamp: (chordId: number) => void;
-  onUpdateTimestamp: (chordId: number, timestamp: number | null) => void;
-  onUpdateChordText: (chordId: number, newChords: ChordSymbol[]) => void;
-  onDeleteChord: (chordId: number) => void;
-  notation: ChordNotation; // Système de notation à afficher
-  musicalKey?: string;     // Tonalité (requise pour notation 'numerical')
-}
-
-// ═══════════════════════════════════════════════════════
-// COMBINED VIEW
-// ═══════════════════════════════════════════════════════
-
-export interface CombinedViewProps {
-  lyrics: LyricLine[];
-  chords: ChordLine[];
-  onSync: (id: number, time: number) => void;
-  notation: ChordNotation;
-  musicalKey?: string;     // Tonalité (requise pour notation 'numerical')
-}
 
 
 // ═══════════════════════════════════════════════════════
