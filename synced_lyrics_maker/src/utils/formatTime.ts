@@ -5,6 +5,11 @@
 import React from "react";
 
 export function formatTime(seconds: number): string {
+    // Gestion des valeurs invalides (NaN, null, undefined, Infinity)
+    if (!isFinite(seconds) || isNaN(seconds) || seconds == null) {
+        return "00:00.00";
+    }
+
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     const centi = Math.round((seconds - Math.floor(seconds)) * 100); // The millisecond part are obtained by rounding the decimal part of the seconds

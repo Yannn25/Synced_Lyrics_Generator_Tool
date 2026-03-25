@@ -18,6 +18,13 @@ export function useAudio() {
     const [error, setError] = useState<string | null>(null);
     const [audioBaseName, setAudioBaseName] = useState<string>("");
   
+    // Initialize audio element
+    useEffect(() => {
+        if (!audioRef.current) {
+            audioRef.current = new Audio();
+        }
+    }, []);
+
     // Load audio file
     const loadAudio = useCallback((file: File) => {
         const url = URL.createObjectURL(file);

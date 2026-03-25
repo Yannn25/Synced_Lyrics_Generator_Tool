@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Eye, RotateCcw, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import MiniAudioControls from "@/components/MiniAudioControls";
+import AudioPlayer from "@/components/AudioPlayer";
 import UnifiedLyricsList from "@/components/UnifiedLyricsList";
 import StepHelpModal from "@/components/workflow/StepHelpModal";
 import { useAudio } from "@/hooks/useAudio";
@@ -32,7 +32,7 @@ interface StepSyncProps {
 /**
  * StepSync - Étape 2 : Synchronisation Unifiée (ChordPro)
  *
- * Restaure le look "Card" avec MiniAudioControls et UnifiedLyricsList.
+ * Restaure le look "Card" avec AudioPlayer et UnifiedLyricsList.
  */
 export default function StepSync({
   audio,
@@ -97,39 +97,33 @@ export default function StepSync({
       animate="animate"
       exit="exit"
       transition={stepTransition}
-      className="flex flex-col gap-6 h-full pb-8"
+      className="flex flex-col gap-8 h-full pb-10"
     >
       {/* Header avec progression */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-2">
         <div>
           <h2 className="text-xl font-bold text-foreground">
             Synchronisation
           </h2>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground mt-2">
             Écoute l'audio et synchronise chaque ligne (Espace = Play, Entrée = Sync)
           </p>
         </div>
 
-        {/* Indicateur de progression (Style Ancien) */}
-        <div className="flex items-center gap-3">
+        {/* Indicateur de progression */}
+        <div className="flex items-center gap-6 bg-slate-900/40 p-3 rounded-xl border border-white/5 backdrop-blur-sm shadow-sm">
           <StepHelpModal step={2} />
-          <div className="text-right block">
-            <span className="text-xl sm:text-2xl font-bold text-primary">{syncStats.synced}</span>
-            <span className="text-base sm:text-lg text-muted-foreground">/{syncStats.total}</span>
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            <Badge
-              variant={syncStats.percentage === 100 ? "default" : "outline"}
-              className={cn(
-                "transition-all duration-300",
-                syncStats.percentage === 100 && "bg-green-500/20 text-green-400 border-green-500/30"
-              )}
-            >
-              {syncStats.percentage}% synced
-            </Badge>
-            <div className="w-24 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+          
+          <div className="h-8 w-px bg-white/10" />
+          
+          <div className="flex flex-col items-end gap-1.5 min-w-[120px]">
+             <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-bold text-primary tabular-nums">{syncStats.synced}</span>
+                <span className="text-sm text-muted-foreground font-medium">/ {syncStats.total}</span>
+             </div>
+            <div className="w-full h-1.5 bg-slate-800/80 rounded-full overflow-hidden shadow-inner">
               <div
-                className="h-full bg-gradient-to-r from-primary-darkest to-primary transition-all duration-300"
+                className="h-full bg-gradient-to-r from-primary-darkest to-primary transition-all duration-500 ease-out"
                 style={{ width: `${syncStats.percentage}%` }}
               />
             </div>
@@ -137,40 +131,41 @@ export default function StepSync({
         </div>
       </div>
 
-      {/* Contrôles audio mini (Style Ancien) */}
-      <MiniAudioControls
-        currentTime={audio.currentTime}
-        duration={audio.duration}
-        isPlaying={audio.isPlaying}
-        onPlay={audio.play}
-        onPause={audio.pause}
-        onSeek={audio.seek}
-        onSync={onSyncLine}
-        canSync={selectedLineId !== null && audio.isLoaded}
-        showSyncButton={true}
-        compact={false}
-      />
-
-      {/* Liste des lignes (Style Ancien avec UnifiedLyricsList) */}
-      <div className="flex-1 min-h-[300px] sm:min-h-[400px] max-h-[60vh] sm:max-h-[70vh] overflow-auto touch-scroll">
-         <UnifiedLyricsList
-            lines={lines}
-            selectedLineId={selectedLineId}
-            onSelectLine={onSelectLine}
-            onClearTimestamp={onClearTimestamp}
-            onUpdateTimestamp={onUpdateTimestamp}
-            onUpdateLineContent={onUpdateLineContent}
-            onDeleteLine={onDeleteLine}
-         />
+      {/* Contrôles audio mini */}
+      <div className="bg-slate-900/30 rounded-xl border border-white/5 p-1 backdrop-blur overflow-hidden shadow-lg mb-4">
+        <AudioPlayer
+            audio={audio}
+            onSyncLine={onSyncLine}
+            canSync={selectedLineId !== null && audio.isLoaded}
+            showSyncButton={true}
+            compact={true}
+        />
       </div>
 
-      {/* Footer Actions (Style Ancien) */}
+      {/* Liste des lignes */}
+      <div className="flex-1 min-h-[300px] sm:min-h-[400px] max-h-[60vh] sm:max-h-[70vh] bg-slate-950/20 rounded-2xl border border-white/5 overflow-hidden shadow-inner flex flex-col relative">
+         <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-slate-950/50 to-transparent z-10 pointer-events-none"/>
+         <div className="flex-1 overflow-auto touch-scroll p-2">
+             <UnifiedLyricsList
+                lines={lines}
+                selectedLineId={selectedLineId}
+                onSelectLine={onSelectLine}
+                onClearTimestamp={onClearTimestamp}
+                onUpdateTimestamp={onUpdateTimestamp}
+                onUpdateLineContent={onUpdateLineContent}
+                onDeleteLine={onDeleteLine}
+             />
+         </div>
+         <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-slate-950/50 to-transparent z-10 pointer-events-none"/>
+      </div>
+
+      {/* Footer Actions */}
       <div
         className={cn(
-          "flex items-center justify-between p-4 rounded-xl border transition-all duration-300",
+          "flex items-center justify-between p-6 rounded-2xl border transition-all duration-300 shadow-lg",
           canExport
-            ? "border-green-500/30 bg-green-500/5"
-            : "border-white/10 bg-slate-800/30"
+            ? "border-green-500/20 bg-green-500/5 shadow-green-500/5"
+            : "border-white/5 bg-slate-900/40 shadow-xl"
         )}
       >
         <div className="flex flex-col gap-1">
